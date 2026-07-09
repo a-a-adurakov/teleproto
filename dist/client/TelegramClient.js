@@ -1341,7 +1341,7 @@ class TelegramClient extends telegramBaseClient_1.TelegramBaseClient {
             id: chosen.id,
             ipAddress: chosen.ipAddress,
             port: chosen.port || 443,
-            secret: chosen.secret && chosen.secret.length ? Buffer.from(chosen.secret) : undefined,
+            secret: (chosen.secret && chosen.secret.length >= 16) ? Buffer.from(chosen.secret) : undefined,
         };
     }
     /** @hidden */
