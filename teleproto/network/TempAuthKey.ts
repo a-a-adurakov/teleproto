@@ -9,7 +9,7 @@ import {
     toSignedLittleBuffer,
 } from "../Helpers";
 
-export const TEMP_KEY_EXPIRES_IN = 60 * 60; // 1 hour — server may discard earlier
+export const TEMP_KEY_EXPIRES_IN = 2 * 60 * 60; // 2 hours
 
 function sha1(data: Buffer): Buffer {
     return createHash("sha1").update(data).digest();
