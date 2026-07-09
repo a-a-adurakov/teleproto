@@ -87,7 +87,7 @@ class Network {
                 dcenter.resetMediaTempKey();
             }
             const log = this._client._log;
-            const sender = this._client._makeSender(dcId, () => this._onSenderBreak(shiftedDcId, slot), useTemp ? dcenter.mediaTempKey : dcenter.authKey, false, useTemp
+            const sender = this._client._makeSender(dcId, () => this._onSenderBreak(shiftedDcId, slot), useTemp ? dcenter.mediaTempKey : dcenter.authKey, true, useTemp
                 ? {
                     permAuthKey: dcenter.authKey,
                     dcParam: -(dcId +

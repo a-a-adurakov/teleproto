@@ -136,7 +136,7 @@ export class Network {
                 dcId,
                 () => this._onSenderBreak(shiftedDcId, slot),
                 useTemp ? dcenter.mediaTempKey : dcenter.authKey,
-                false,
+                true,
                 useTemp
                     ? {
                           permAuthKey: dcenter.authKey,
