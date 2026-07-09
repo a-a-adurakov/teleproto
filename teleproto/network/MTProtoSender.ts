@@ -423,6 +423,9 @@ export class MTProtoSender {
             this._log.debug("Connection success!");
         }
 
+        const authKeyHash = this.authKey.getKey() ? this.authKey.getKey()!.slice(0, 8).toString('hex') : 'none';
+        this._log.debug(`Auth key hash: ${authKeyHash}, authenticated: ${this._authenticated}`);
+
         if (!this.authKey.getKey()) {
             const plain = new MTProtoPlainSender(connection, this._log);
             this._log.debug("New auth_key attempt ...");
@@ -1171,6 +1174,14 @@ export class MTProtoSender {
                 await this._client._errorHandler(err as Error);
             }
         }
+
+        // If auth key was broken, clear it so reconnect creates a new one
+        if (!this._authenticated) {
+            this._log.debug(`[Reconnect] Auth key broken, clearing for dc ${this._dcId}`);
+            await this.authKey.setKey(undefined);
+            this._client.session.setAuthKey(undefined, this._dcId);
+        }
+
         this._log.debug(
             `Adding ${this._sendQueue._pendingStates.length} old request to resend`
         );
