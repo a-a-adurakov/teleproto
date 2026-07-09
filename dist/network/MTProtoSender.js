@@ -500,6 +500,15 @@ class MTProtoSender {
                 else if (e instanceof errors_1.InvalidBufferError) {
                     // 404 means that the server has "forgotten" our auth key and we need to create a new one.
                     if (e.code === 404) {
+                        if (this._currentRetries > this._reconnectRetries) {
+                            this._log.error(`[404] Max retries reached for dc ${this._dcId}, giving up`);
+                            for (const state of this._pendingState.values()) {
+                                state.reject("Maximum reconnection retries reached for broken auth key");
+                            }
+                            this.userDisconnected = true;
+                            this._recvLoopHandle = undefined;
+                            return;
+                        }
                         this._handleBadAuthKey();
                         this.reconnect();
                     }
@@ -915,17 +924,10 @@ class MTProtoSender {
                 await this._client._errorHandler(err);
             }
         }
-        // If auth key was broken, don't reconnect at transport level.
-        // The temp auth binding only happens in _connectSender.
-        // Kill the slot so Network creates a fresh one with proper binding.
         if (!this._authenticated) {
-            this._log.debug(`[Reconnect] Auth key broken for dc ${this._dcId}, aborting reconnect — slot will be recreated`);
-            this._userConnected = false;
-            this.isReconnecting = false;
-            if (!this._isMainSender && this._onConnectionBreak) {
-                this._onConnectionBreak(this._dcId);
-            }
-            return;
+            this._log.debug(`[Reconnect] Auth key broken for dc ${this._dcId}, clearing key for fresh temp key`);
+            this.authKey.setKey(undefined);
+            this._pendingState.clear();
         }
         this._log.debug(`Adding ${this._sendQueue._pendingStates.length} old request to resend`);
         for (let i = 0; i < this._sendQueue._pendingStates.length; i++) {

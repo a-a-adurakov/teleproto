@@ -148,7 +148,7 @@ export declare function getInputMedia(media: any, { isPhoto, attributes, forceDo
  * @param fileSize
  * @returns {Number}
  */
-export declare function getAppropriatedPartSize(fileSize: bigInt.BigInteger): 128 | 256 | 512;
+export declare function getAppropriatedPartSize(fileSize: bigInt.BigInteger): 256 | 128 | 512;
 export declare function getPeer(peer: EntityLike | any): any;
 /**
  Convert the given peer into its marked ID by default.

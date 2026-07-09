@@ -67,11 +67,14 @@ class Connection {
     async recv() {
         while (this._connected) {
             const result = await this._recvArray.pop();
-            // null = sentinel value = keep trying
             if (result) {
                 return result;
             }
         }
+        const err = this._recvError;
+        this._recvError = undefined;
+        if (err)
+            throw err;
         throw new Error("Not connected");
     }
     async _sendLoop() {
@@ -102,8 +105,8 @@ class Connection {
                 }
             }
             catch (e) {
-                this._log.debug("connection closed");
-                // await this._recvArray.push()
+                this._log.debug(`connection recv error: ${e}`);
+                this._recvError = e instanceof Error ? e : new Error(String(e));
                 this.disconnect();
                 return;
             }

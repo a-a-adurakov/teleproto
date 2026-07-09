@@ -36,6 +36,7 @@ declare class Connection {
     _sendArray: AsyncQueue;
     _recvArray: AsyncQueue;
     private _abortController;
+    private _recvError?;
     socket: PromisedNetSockets;
     constructor({ ip, port, dcId, loggers, proxy, socket, }: ConnectionInterfaceParams);
     _connect(): Promise<void>;
