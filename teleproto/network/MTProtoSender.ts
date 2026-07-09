@@ -1175,11 +1175,17 @@ export class MTProtoSender {
             }
         }
 
-        // If auth key was broken, clear it so reconnect creates a new one
+        // If auth key was broken, don't reconnect at transport level.
+        // The temp auth binding only happens in _connectSender.
+        // Kill the slot so Network creates a fresh one with proper binding.
         if (!this._authenticated) {
-            this._log.debug(`[Reconnect] Auth key broken, clearing for dc ${this._dcId}`);
-            await this.authKey.setKey(undefined);
-            this._client.session.setAuthKey(undefined, this._dcId);
+            this._log.debug(`[Reconnect] Auth key broken for dc ${this._dcId}, aborting reconnect — slot will be recreated`);
+            this._userConnected = false;
+            this.isReconnecting = false;
+            if (!this._isMainSender && this._onConnectionBreak) {
+                this._onConnectionBreak(this._dcId);
+            }
+            return;
         }
 
         this._log.debug(
