@@ -3,8 +3,8 @@ import {
     PromisedNetSockets,
 } from "../../extensions";
 import { AsyncQueue } from "../../extensions";
-import { AbridgedPacketCodec } from "./TCPAbridged";
-import { FullPacketCodec } from "./TCPFull";
+import { AbridgedPacketCodec } from "./codec/Abridged";
+import { FullPacketCodec } from "./codec/Full";
 import { ProxyInterface } from "./TCPMTProxy";
 
 interface ConnectionInterfaceParams {
@@ -28,7 +28,7 @@ interface ConnectionInterfaceParams {
  * the client is disconnected (includes remote disconnections).
  */
 class Connection {
-    PacketCodecClass?: typeof AbridgedPacketCodec | typeof FullPacketCodec;
+    PacketCodecClass?: typeof PacketCodec;
     readonly _ip: string;
     readonly _port: number;
     _dcId: number;
@@ -200,9 +200,9 @@ class ObfuscatedConnection extends Connection {
 }
 
 class PacketCodec {
-    private _conn: Buffer;
+    private _conn: any;
 
-    constructor(connection: Buffer) {
+    constructor(connection: any) {
         this._conn = connection;
     }
 

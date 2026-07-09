@@ -549,6 +549,12 @@ export abstract class TelegramBaseClient {
     async _connectSender(sender: MTProtoSender, dcId: number) {
         // if we don't already have an auth key we want to use normal DCs not -1
         const dc = await this.getDC(dcId, !!sender.authKey.getKey());
+        const connectionClassName = this._connection.name || this._connection.constructor.name;
+        this._log.debug(
+            `Connecting to DC ${dcId}: ${dc.ipAddress}:${dc.port}, ` +
+            `connection class: ${connectionClassName}, ` +
+            `secret: ${dc.secret ? '0x' + dc.secret[0].toString(16).padStart(2, '0') : 'none'}`
+        );
 
         while (true) {
             try {
@@ -665,7 +671,7 @@ export abstract class TelegramBaseClient {
     async getDC(
         dcId: number,
         download: boolean
-    ): Promise<{ id: number; ipAddress: string; port: number }> {
+    ): Promise<{ id: number; ipAddress: string; port: number; secret?: Buffer }> {
         throw new Error("Cannot be called from here!");
     }
 

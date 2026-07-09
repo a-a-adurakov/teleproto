@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 
 import { ObfuscatedConnection } from "./Connection";
-import { AbridgedPacketCodec } from "./TCPAbridged";
+import { AbridgedPacketCodec } from "./codec/Abridged";
 import { generateRandomBytes, sha256 } from "../../Helpers";
 import { Logger, PromisedNetSockets } from "../../extensions";
 import { CTR } from "../../crypto/CTR";

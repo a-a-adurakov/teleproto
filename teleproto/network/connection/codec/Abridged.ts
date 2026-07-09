@@ -1,6 +1,6 @@
-import { readBufferFromBigInt } from "../../Helpers";
-import { Connection, PacketCodec } from "./Connection";
-import type { PromisedNetSockets } from "../../extensions";
+import { readBufferFromBigInt } from "../../../Helpers";
+import { Connection, PacketCodec } from "../Connection";
+import type { PromisedNetSockets, Logger } from "../../../extensions";
 
 import bigInt from "big-integer";
 
@@ -9,11 +9,14 @@ export class AbridgedPacketCodec extends PacketCodec {
     static obfuscateTag = Buffer.from("efefefef", "hex");
     private tag: Buffer;
     obfuscateTag: Buffer;
+    private _log?: Logger;
 
     constructor(props: any) {
         super(props);
         this.tag = AbridgedPacketCodec.tag;
         this.obfuscateTag = AbridgedPacketCodec.obfuscateTag;
+        this._log = props._log;
+        this._log?.debug("Abridged codec initialized (protocol: EF, tag: 0xef)");
     }
 
     encodePacket(data: Buffer) {
@@ -36,12 +39,28 @@ export class AbridgedPacketCodec extends PacketCodec {
         reader: PromisedNetSockets
     ): Promise<Buffer> {
         const readData = await reader.read(1);
-        let length = readData[0];
+        let firstByte = readData[0];
+        // Quick ACK — bit 7 set means the next 3 bytes are an ack token, not a length
+        if (firstByte & 0x80) {
+            const remaining = await reader.read(3);
+            const token = Buffer.concat([readData, remaining]);
+            this._log?.debug(
+                `Quick ACK token received (4 bytes): ` +
+                `hex=${token.toString('hex')}, ` +
+                `first_byte=0x${firstByte.toString(16).padStart(2, '0')} (bit7=${(firstByte >> 7) & 1}), ` +
+                `length_as_int=${token.readUInt32LE(0)}`
+            );
+            return this.readPacket(reader);
+        }
+        let length = firstByte;
         if (length >= 127) {
             length = Buffer.concat([
                 await reader.read(3),
                 Buffer.alloc(1),
             ]).readInt32LE(0);
+            this._log?.debug(`Abridged packet: extended length=${length} bytes`);
+        } else {
+            this._log?.debug(`Abridged packet: length=${length} words (${length * 4} bytes)`);
         }
 
         return reader.read(length << 2);

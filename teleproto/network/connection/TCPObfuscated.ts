@@ -1,6 +1,6 @@
 import { generateRandomBytes } from "../../Helpers";
 import { ObfuscatedConnection } from "./Connection";
-import { AbridgedPacketCodec } from "./TCPAbridged";
+import { AbridgedPacketCodec } from "./codec/Abridged";
 import { CTR } from "../../crypto/CTR";
 import { PromisedNetSockets } from "../../extensions";
 

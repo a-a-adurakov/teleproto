@@ -1714,7 +1714,7 @@ export class TelegramClient extends TelegramBaseClient {
     async getDC(
         dcId: number,
         downloadDC = false
-    ): Promise<{ id: number; ipAddress: string; port: number }> {
+    ): Promise<{ id: number; ipAddress: string; port: number; secret?: Buffer }> {
         this._log.debug(`Getting DC ${dcId}`);
         if (!this._config) {
             try {
@@ -1733,7 +1733,7 @@ export class TelegramClient extends TelegramBaseClient {
         const ipv6Table = this._testServers ? TEST_DC_IPV6 : PROD_DC_IPV6;
         const ipAddress = (this._useIPV6 ? ipv6Table : ipv4Table)[dcId];
         if (ipAddress) {
-            return { id: dcId, ipAddress, port: 443 };
+            return { id: dcId, ipAddress, port: 443, secret: undefined };
         }
         throw new Error(`Cannot find the DC with the ID of ${dcId}`);
     }
@@ -1741,13 +1741,12 @@ export class TelegramClient extends TelegramBaseClient {
     private _lookupDcOption(
         dcId: number,
         mediaCluster: boolean
-    ): { id: number; ipAddress: string; port: number } | undefined {
+    ): { id: number; ipAddress: string; port: number; secret?: Buffer } | undefined {
         if (!this._config) return undefined;
         let candidates = this._config.dcOptions.filter((DC) => {
             if (DC.id !== dcId) return false;
             if (DC.cdn) return false;
             if (DC.mediaOnly && !mediaCluster) return false;
-            if (DC.secret && DC.secret.length) return false;
             if (DC.tcpoOnly) return false;
             return !!DC.ipv6 === this._useIPV6;
         });
@@ -1759,10 +1758,19 @@ export class TelegramClient extends TelegramBaseClient {
             candidates = candidates.filter((DC) => DC.static);
         }
         const chosen = candidates[0];
+        const hasSecret = chosen.secret && chosen.secret.length > 0;
+        const secretPrefix = hasSecret ? `0x${chosen.secret![0].toString(16).padStart(2, '0')}` : 'none';
+        this._log.debug(
+            `DC ${dcId} options: ${candidates.length} candidates, ` +
+            `chosen: ${chosen.ipAddress}:${chosen.port || 443}, ` +
+            `secret: ${secretPrefix}, ` +
+            `mediaOnly: ${chosen.mediaOnly}, static: ${chosen.static}`
+        );
         return {
             id: chosen.id,
             ipAddress: chosen.ipAddress,
             port: chosen.port || 443,
+            secret: chosen.secret && chosen.secret.length ? Buffer.from(chosen.secret) : undefined,
         };
     }
 
