@@ -37,7 +37,7 @@ export class Logger {
     tzOffset = new Date().getTimezoneOffset() * 60000;
     private _logLevel: LogLevel;
 
-    constructor(level: LogLevel = LogLevel.INFO) {
+    constructor(level: LogLevel = LogLevel.DEBUG) {
         this._logLevel = level;
     }
 

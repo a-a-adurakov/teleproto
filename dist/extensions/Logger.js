@@ -24,7 +24,7 @@ const COLOR = {
 };
 const RESET = "\x1b[0m";
 class Logger {
-    constructor(level = LogLevel.INFO) {
+    constructor(level = LogLevel.DEBUG) {
         this.messageFormat = "[%t] [%l] - [%m]";
         this.tzOffset = new Date().getTimezoneOffset() * 60000;
         this._logLevel = level;
