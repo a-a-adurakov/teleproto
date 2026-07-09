@@ -876,9 +876,11 @@ class MTProtoSender {
      */
     async _handleMsgAll(message) { }
     reconnect() {
+        this._log.debug(`reconnect() called: _userConnected=${this._userConnected}, isReconnecting=${this.isReconnecting}, _autoReconnect=${this._autoReconnect}, dc=${this._dcId}`);
         if (this._userConnected && !this.isReconnecting) {
             this.isReconnecting = true;
             if (!this._autoReconnect) {
+                this._log.debug(`reconnect() skipped: autoReconnect=false, disconnecting`);
                 this.userDisconnected = true;
                 this._disconnect().catch(() => { });
                 if (!this._isMainSender && this._onConnectionBreak) {
@@ -890,10 +892,14 @@ class MTProtoSender {
                 ? 0
                 : Math.min(1000 * this._currentRetries, 5000);
             this._currentRetries++;
+            this._log.debug(`reconnect() scheduled: delay=${delay}ms, retries=${this._currentRetries}`);
             (0, Helpers_1.sleep)(delay).then(() => {
                 this._log.debug("Started reconnecting");
                 this._reconnect();
             });
+        }
+        else {
+            this._log.debug(`reconnect() skipped: conditions not met`);
         }
     }
     async _reconnect() {
