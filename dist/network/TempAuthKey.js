@@ -6,7 +6,7 @@ const node_crypto_1 = require("node:crypto");
 const tl_1 = require("../tl");
 const IGE_1 = require("../crypto/IGE");
 const Helpers_1 = require("../Helpers");
-exports.TEMP_KEY_EXPIRES_IN = 24 * 60 * 60;
+exports.TEMP_KEY_EXPIRES_IN = 60 * 60; // 1 hour — server may discard earlier
 function sha1(data) {
     return (0, node_crypto_1.createHash)("sha1").update(data).digest();
 }
