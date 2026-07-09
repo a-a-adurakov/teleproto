@@ -314,6 +314,7 @@ class MTProtoSender {
             this._log.debug("Starting receive loop");
             this._recvLoopHandle = this._recvLoop();
         }
+        this._log.debug("[TempBinding] hasTempBinding=" + !!this._tempBinding + " isBound=" + (this._tempBinding ? this._tempBinding.isBound() : "N/A"));
         if (this._tempBinding && !this._tempBinding.isBound()) {
             try {
                 const expiresAt = Math.floor(Date.now() / 1000) +
