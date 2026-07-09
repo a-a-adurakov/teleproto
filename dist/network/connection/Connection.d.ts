@@ -8,6 +8,7 @@ interface ConnectionInterfaceParams {
     loggers: Logger;
     proxy?: ProxyInterface;
     socket: typeof PromisedNetSockets;
+    dcSecret?: Buffer;
 }
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.

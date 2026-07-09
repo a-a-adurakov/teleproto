@@ -5,6 +5,8 @@ import { sleep } from "../Helpers";
 import {
     ConnectionTCPFull,
     ConnectionTCPObfuscated,
+    ConnectionTCPDDSecret,
+    ConnectionTCPTLSSecret,
 } from "../network/connection";
 import { Session, StoreSession } from "../sessions";
 import { Logger, PromisedNetSockets } from "../extensions";
@@ -551,12 +553,24 @@ export abstract class TelegramBaseClient {
     async _connectSender(sender: MTProtoSender, dcId: number) {
         // if we don't already have an auth key we want to use normal DCs not -1
         const dc = await this.getDC(dcId, !!sender.authKey.getKey());
-        const connectionClassName = this._connection.name || this._connection.constructor.name;
-        this._log.debug(
-            `Connecting to DC ${dcId}: ${dc.ipAddress}:${dc.port}, ` +
-            `connection class: ${connectionClassName}, ` +
-            `secret: ${dc.secret ? '0x' + dc.secret[0].toString(16).padStart(2, '0') : 'none'}`
-        );
+
+        // Auto-select connection class based on DC secret prefix
+        let connectionClass = this._connection;
+        if (dc.secret && dc.secret.length > 0) {
+            const secretPrefix = dc.secret[0];
+            if (secretPrefix === 0xdd) {
+                connectionClass = ConnectionTCPDDSecret;
+                this._log.debug(`DC ${dcId} has DD secret (0xdd) → using ConnectionTCPDDSecret`);
+            } else if (secretPrefix === 0xee) {
+                connectionClass = ConnectionTCPTLSSecret;
+                this._log.debug(`DC ${dcId} has TLS secret (0xee) → using ConnectionTCPTLSSecret`);
+            } else {
+                this._log.debug(`DC ${dcId} has plain secret → using default connection`);
+            }
+        } else {
+            const connectionClassName = connectionClass.name || connectionClass.constructor.name;
+            this._log.debug(`DC ${dcId} has no secret → using ${connectionClassName}`);
+        }
 
         while (true) {
             try {
@@ -585,13 +599,14 @@ export abstract class TelegramBaseClient {
                 }
 
                 await sender.connect(
-                    new this._connection({
+                    new connectionClass({
                         ip: dc.ipAddress,
                         port: dc.port,
                         dcId: dcId,
                         loggers: this._log,
                         proxy: this._proxy,
                         socket: this.networkSocket,
+                        dcSecret: dc.secret,
                     }),
                     false
                 );

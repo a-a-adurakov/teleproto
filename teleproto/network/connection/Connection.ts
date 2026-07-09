@@ -14,6 +14,7 @@ interface ConnectionInterfaceParams {
     loggers: Logger;
     proxy?: ProxyInterface;
     socket: typeof PromisedNetSockets;
+    dcSecret?: Buffer;
 }
 
 /**
