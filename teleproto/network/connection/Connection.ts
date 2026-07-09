@@ -43,6 +43,7 @@ class Connection {
     _sendArray: AsyncQueue;
     _recvArray: AsyncQueue;
     private _abortController: AbortController;
+    private _recvError?: Error;
     socket: PromisedNetSockets;
 
     constructor({
@@ -113,11 +114,13 @@ class Connection {
     async recv() {
         while (this._connected) {
             const result = await this._recvArray.pop();
-            // null = sentinel value = keep trying
             if (result) {
                 return result;
             }
         }
+        const err = this._recvError;
+        this._recvError = undefined;
+        if (err) throw err;
         throw new Error("Not connected");
     }
 
@@ -149,9 +152,8 @@ class Connection {
                     throw new Error("no data received");
                 }
             } catch (e) {
-                this._log.debug("connection closed");
-                // await this._recvArray.push()
-
+                this._log.debug(`connection recv error: ${e}`);
+                this._recvError = e instanceof Error ? e : new Error(String(e));
                 this.disconnect();
                 return;
             }

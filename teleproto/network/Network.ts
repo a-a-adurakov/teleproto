@@ -178,7 +178,6 @@ export class Network {
         const dcId = bareDcId(shiftedDcId);
         this._client.session.setAuthKey(undefined, dcId);
 
-        // Reset temp auth key so next connection creates a fresh one
         const dcenter = this.dcenter(dcId);
         dcenter.resetMediaTempKey();
 

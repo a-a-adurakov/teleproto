@@ -357,6 +357,7 @@ export abstract class TelegramBaseClient {
             this._log = new Logger();
         }
         this._log.info("Running teleproto version " + version);
+
         if (session && typeof session == "string") {
             session = new StoreSession(session);
         }
