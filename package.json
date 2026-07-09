@@ -4,6 +4,60 @@
     "description": "Telegram MTProto API client library written in TypeScript",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./sessions": {
+            "types": "./dist/sessions/index.d.ts",
+            "default": "./dist/sessions/index.js"
+        },
+        "./events": {
+            "types": "./dist/events/index.d.ts",
+            "default": "./dist/events/index.js"
+        },
+        "./client": {
+            "types": "./dist/client/index.d.ts",
+            "default": "./dist/client/index.js"
+        },
+        "./client/uploads": {
+            "types": "./dist/client/uploads.d.ts",
+            "default": "./dist/client/uploads.js"
+        },
+        "./client/downloads": {
+            "types": "./dist/client/downloads.d.ts",
+            "default": "./dist/client/downloads.js"
+        },
+        "./client/messages": {
+            "types": "./dist/client/messages.d.ts",
+            "default": "./dist/client/messages.js"
+        },
+        "./define": {
+            "types": "./dist/define.d.ts",
+            "default": "./dist/define.js"
+        },
+        "./tl": {
+            "types": "./dist/tl/index.d.ts",
+            "default": "./dist/tl/index.js"
+        },
+        "./errors": {
+            "types": "./dist/errors/index.d.ts",
+            "default": "./dist/errors/index.js"
+        },
+        "./extensions": {
+            "types": "./dist/extensions/index.d.ts",
+            "default": "./dist/extensions/index.js"
+        },
+        "./network": {
+            "types": "./dist/network/index.d.ts",
+            "default": "./dist/network/index.js"
+        },
+        "./network/connection": {
+            "types": "./dist/network/connection/index.d.ts",
+            "default": "./dist/network/connection/index.js"
+        }
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/sanyok12345/teleproto.git"
