@@ -8,7 +8,7 @@ const SenderSlot_1 = require("./SenderSlot");
 const errors_1 = require("../errors");
 const ONE_MB = 1024 * 1024;
 const MIN_CHUNK = 4096;
-const REQUEST_DEADLINE_MS = 15000;
+const REQUEST_DEADLINE_MS = 30000;
 exports.DEFAULT_MEDIA_SCHEDULER_OPTIONS = {
     partSize: 512 * 1024,
     requestRetries: 5,

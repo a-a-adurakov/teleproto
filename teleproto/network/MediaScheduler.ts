@@ -19,7 +19,7 @@ import type { TelegramBaseClient } from "../client/telegramBaseClient";
 const ONE_MB = 1024 * 1024;
 const MIN_CHUNK = 4096;
 
-const REQUEST_DEADLINE_MS = 15_000;
+const REQUEST_DEADLINE_MS = 30_000;
 
 export interface MediaSchedulerOptions {
 
