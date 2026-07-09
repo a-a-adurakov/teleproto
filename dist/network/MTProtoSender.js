@@ -929,6 +929,9 @@ class MTProtoSender {
             this._log.debug(`[Reconnect] Auth key broken for dc ${this._dcId}, clearing key for fresh temp key`);
             this.authKey.setKey(undefined);
             this._pendingState.clear();
+            if (this._dcenter) {
+                this._dcenter.mediaBound = false;
+            }
         }
         this._log.debug(`Adding ${this._sendQueue._pendingStates.length} old request to resend`);
         for (let i = 0; i < this._sendQueue._pendingStates.length; i++) {
