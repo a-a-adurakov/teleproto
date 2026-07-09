@@ -217,7 +217,7 @@ export interface TelegramClientParams {
 }
 
 const clientParamsDefault = {
-    connection: ConnectionTCPFull,
+    connection: ConnectionTCPObfuscated,
     networkSocket: PromisedNetSockets,
     useIPV6: false,
     testServers: false,
@@ -394,6 +394,8 @@ export abstract class TelegramBaseClient {
                 port: this._proxy.port,
             });
         }
+        const connectionClassName = this._connection.name || this._connection.constructor.name;
+        this._log.debug(`Connection class: ${connectionClassName}`);
         this._initRequest = new Api.InitConnection({
             apiId: this.apiId,
             deviceModel:

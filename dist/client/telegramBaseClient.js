@@ -74,7 +74,7 @@ function inferSessionEnv(address) {
     return undefined;
 }
 const clientParamsDefault = {
-    connection: connection_1.ConnectionTCPFull,
+    connection: connection_1.ConnectionTCPObfuscated,
     networkSocket: extensions_1.PromisedNetSockets,
     useIPV6: false,
     testServers: false,
@@ -161,6 +161,8 @@ class TelegramBaseClient {
                 port: this._proxy.port,
             });
         }
+        const connectionClassName = this._connection.name || this._connection.constructor.name;
+        this._log.debug(`Connection class: ${connectionClassName}`);
         this._initRequest = new tl_1.Api.InitConnection({
             apiId: this.apiId,
             deviceModel: clientParams.deviceModel || os_1.default.type().toString() || "Unknown",
