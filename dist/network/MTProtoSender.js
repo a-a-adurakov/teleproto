@@ -555,6 +555,7 @@ class MTProtoSender {
             return;
         }
         this._log.warn(`Broken authorization key for dc ${this._dcId}, resetting...`);
+        this._authenticated = false;
         if (this._isMainSender && this._updateCallback) {
             this._updateCallback(this._client, new UpdateConnectionState_1.UpdateConnectionState(UpdateConnectionState_1.UpdateConnectionState.broken));
         }

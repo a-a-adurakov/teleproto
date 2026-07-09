@@ -769,6 +769,7 @@ export class MTProtoSender {
         this._log.warn(
             `Broken authorization key for dc ${this._dcId}, resetting...`
         );
+        this._authenticated = false;
 
         if (this._isMainSender && this._updateCallback) {
             this._updateCallback(
