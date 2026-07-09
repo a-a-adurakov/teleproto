@@ -227,7 +227,9 @@ async function streamParallel(client, location, dcId, partSize, totalBytes, writ
     // there (that queue IS the demand signal that grows windows/sessions).
     // This also bounds the OrderedWriter stash memory.
     const dl = client._media.opts.download;
-    const inflight = new OrderedWriter_1.BoundedSemaphore(Math.max(1, dl.maxSessions * Math.ceil(dl.maxWindow / Math.max(1, partSize))));
+    const userLimit = Math.max(1, dl.maxSessions * Math.ceil(dl.maxWindow / Math.max(1, partSize)));
+    const tgLimit = await client._getDownloadConcurrency(totalBytes);
+    const inflight = new OrderedWriter_1.BoundedSemaphore(Math.max(1, Math.min(userLimit, tgLimit)));
     let firstError;
     const tasks = [];
     for (let i = 0; i < totalParts; i++) {
