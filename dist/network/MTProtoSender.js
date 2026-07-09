@@ -499,6 +499,7 @@ class MTProtoSender {
                     // 404 means that the server has "forgotten" our auth key and we need to create a new one.
                     if (e.code === 404) {
                         this._handleBadAuthKey();
+                        this.reconnect();
                     }
                     else {
                         // this happens sometimes when telegram is having some internal issues.
