@@ -281,7 +281,7 @@ class MTProtoSender {
         this._log.debug(`Auth key hash: ${authKeyHash}, authenticated: ${this._authenticated}`);
         if (!this.authKey.getKey()) {
             const plain = new MTProtoPlainSender_1.MTProtoPlainSender(connection, this._log);
-            this._log.debug("New auth_key attempt ...");
+            this._log.info("New auth_key attempt ...");
             const res = await (0, Authenticator_1.doAuthentication)(plain, this._log, this._tempBinding
                 ? {
                     expiresIn: this._tempBinding.expiresIn,
@@ -314,7 +314,7 @@ class MTProtoSender {
             this._log.debug("Starting receive loop");
             this._recvLoopHandle = this._recvLoop();
         }
-        this._log.debug("[TempBinding] hasTempBinding=" + !!this._tempBinding + " isBound=" + (this._tempBinding ? this._tempBinding.isBound() : "N/A"));
+        this._log.info("[TempBinding] hasTempBinding=" + !!this._tempBinding + " isBound=" + (this._tempBinding ? this._tempBinding.isBound() : "N/A"));
         if (this._tempBinding && !this._tempBinding.isBound()) {
             try {
                 const expiresAt = Math.floor(Date.now() / 1000) +
@@ -328,7 +328,7 @@ class MTProtoSender {
                 const ok = await state.promise;
                 if (ok === true) {
                     this._tempBinding.onBound(expiresAt);
-                    this._log.debug(`Bound temp auth key for dc ${this._dcId}`);
+                    this._log.info(`Bound temp auth key for dc ${this._dcId}`);
                 }
                 else {
                     throw new Error(`bindTempAuthKey answered ${ok}`);
@@ -925,7 +925,7 @@ class MTProtoSender {
             }
         }
         if (!this._authenticated) {
-            this._log.debug(`[Reconnect] Auth key broken for dc ${this._dcId}, clearing key for fresh temp key`);
+            this._log.warn(`[Reconnect] Auth key broken for dc ${this._dcId}, clearing key for fresh temp key`);
             this.authKey.setKey(undefined);
             this._pendingState.clear();
             if (this._dcenter) {

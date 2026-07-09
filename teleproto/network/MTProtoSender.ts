@@ -428,7 +428,7 @@ export class MTProtoSender {
 
         if (!this.authKey.getKey()) {
             const plain = new MTProtoPlainSender(connection, this._log);
-            this._log.debug("New auth_key attempt ...");
+            this._log.info("New auth_key attempt ...");
             const res = await doAuthentication(
                 plain,
                 this._log,
@@ -469,7 +469,7 @@ export class MTProtoSender {
             this._recvLoopHandle = this._recvLoop();
         }
 
-        this._log.debug("[TempBinding] hasTempBinding=" + !!this._tempBinding + " isBound=" + (this._tempBinding ? this._tempBinding.isBound() : "N/A"));
+        this._log.info("[TempBinding] hasTempBinding=" + !!this._tempBinding + " isBound=" + (this._tempBinding ? this._tempBinding.isBound() : "N/A"));
         if (this._tempBinding && !this._tempBinding.isBound()) {
             try {
                 const expiresAt =
@@ -490,7 +490,7 @@ export class MTProtoSender {
                 const ok = await state.promise;
                 if (ok === true) {
                     this._tempBinding.onBound(expiresAt);
-                    this._log.debug(`Bound temp auth key for dc ${this._dcId}`);
+                    this._log.info(`Bound temp auth key for dc ${this._dcId}`);
                 } else {
                     throw new Error(`bindTempAuthKey answered ${ok}`);
                 }
@@ -1183,7 +1183,7 @@ export class MTProtoSender {
         }
 
         if (!this._authenticated) {
-            this._log.debug(`[Reconnect] Auth key broken for dc ${this._dcId}, clearing key for fresh temp key`);
+            this._log.warn(`[Reconnect] Auth key broken for dc ${this._dcId}, clearing key for fresh temp key`);
             this.authKey.setKey(undefined);
             this._pendingState.clear();
             if (this._dcenter) {
