@@ -136,7 +136,7 @@ export class MediaScheduler {
                     w
                 );
                 merged.upload.startWindow = w;
-                merged.upload.maxWindow = Math.max(merged.upload.maxWindow, w);
+                merged.upload.maxWindow = w;
             }
             if (opts.maxSessions && opts.maxSessions > 0) {
                 merged.download.maxSessions = opts.maxSessions;
