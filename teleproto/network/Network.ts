@@ -175,11 +175,8 @@ export class Network {
             this._slots.delete(shiftedDcId);
         }
 
-        const shift = getDcIdShift(shiftedDcId);
         const dcId = bareDcId(shiftedDcId);
-        if (shift === 0 && dcId !== this._client.session.dcId) {
-            this._client.session.setAuthKey(undefined, dcId);
-        }
+        this._client.session.setAuthKey(undefined, dcId);
         slot.markDead("manual").catch(() => {});
     }
 

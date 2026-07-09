@@ -115,11 +115,8 @@ class Network {
         if (this._slots.get(shiftedDcId) === slot) {
             this._slots.delete(shiftedDcId);
         }
-        const shift = (0, core_types_1.getDcIdShift)(shiftedDcId);
         const dcId = (0, core_types_1.bareDcId)(shiftedDcId);
-        if (shift === 0 && dcId !== this._client.session.dcId) {
-            this._client.session.setAuthKey(undefined, dcId);
-        }
+        this._client.session.setAuthKey(undefined, dcId);
         slot.markDead("manual").catch(() => { });
     }
     async purge() {
