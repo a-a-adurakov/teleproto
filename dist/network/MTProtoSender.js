@@ -505,16 +505,21 @@ class MTProtoSender {
                             for (const state of this._pendingState.values()) {
                                 state.reject("Maximum reconnection retries reached for broken auth key");
                             }
+                            this.userDisconnected = true;
                             this._recvLoopHandle = undefined;
-                            return;
                         }
-                        this._handleBadAuthKey();
-                        this.reconnect();
-                        this._recvLoopHandle = undefined;
+                        else {
+                            this._handleBadAuthKey();
+                            this.reconnect();
+                            this._recvLoopHandle = undefined;
+                        }
                         return;
                     }
                     if (e.code === 429) {
-                        throw new errors_1.FloodWaitError({ request: undefined, capture: 30 });
+                        throw new errors_1.FloodWaitError({
+                            request: undefined,
+                            capture: 30
+                        });
                     }
                     if (e.code === 444) {
                         const otherDc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => !dc.cdn
@@ -531,12 +536,15 @@ class MTProtoSender {
                         for (const state of this._pendingState.values()) {
                             state.reject("No alternative datacenter available");
                         }
+                        this.userDisconnected = true;
                         this._recvLoopHandle = undefined;
                         return;
                     }
-                    // Other transport errors
-                    this._log.warn(`Transport error ${e.code} for dc ${this._dcId}`);
-                    this.reconnect();
+                    // Unknown transport error — can't recover
+                    this._log.error(`Unknown transport error ${e.code} for dc ${this._dcId}`);
+                    for (const state of this._pendingState.values()) {
+                        state.reject(`Unknown transport error ${e.code}`);
+                    }
                     this._recvLoopHandle = undefined;
                     return;
                 }
