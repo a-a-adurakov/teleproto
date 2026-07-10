@@ -516,6 +516,10 @@ class MTProtoSender {
                         return;
                     }
                     if (e.code === 429) {
+                        for (const state of this._pendingState.values()) {
+                            state.reject("Transport flood (429)");
+                        }
+                        this._pendingState.clear();
                         throw new errors_1.FloodWaitError({
                             request: undefined,
                             capture: 30
@@ -527,6 +531,10 @@ class MTProtoSender {
                             && dc.id !== this._dcId);
                         if (otherDc) {
                             this._log.warn(`Transport 404 for dc ${this._dcId}, trying dc ${otherDc.id}`);
+                            for (const state of this._pendingState.values()) {
+                                state.reject(`Transport 404 — migrating to dc ${otherDc.id}`);
+                            }
+                            this._pendingState.clear();
                             throw new errors_1.NetworkMigrateError({
                                 request: undefined,
                                 capture: otherDc.id
@@ -536,7 +544,6 @@ class MTProtoSender {
                         for (const state of this._pendingState.values()) {
                             state.reject("No alternative datacenter available");
                         }
-                        this.userDisconnected = true;
                         this._recvLoopHandle = undefined;
                         return;
                     }
