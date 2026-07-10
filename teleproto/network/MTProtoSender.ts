@@ -604,7 +604,23 @@ export class MTProtoSender {
                 `Sending   ${batch.map((m) => m.request.className)}`
             );
 
-            data = await this._state.encryptMessageData(data);
+            try {
+                data = await this._state.encryptMessageData(data);
+            } catch (e) {
+                this._log.error("Encryption failed", e);
+                for (const state of batch) {
+                    if (!Array.isArray(state)) {
+                        state.reject(e);
+                    } else {
+                        for (const s of state) {
+                            s.reject(e);
+                        }
+                    }
+                }
+                this.reconnect();
+                this._sendLoopHandle = undefined;
+                return;
+            }
             for (const state of batch) {
                 if (!Array.isArray(state)) {
                     if (state.request.classType === "request") {
