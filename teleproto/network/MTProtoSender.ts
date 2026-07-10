@@ -767,6 +767,10 @@ export class MTProtoSender {
                     if (this._client._errorHandler) {
                         await this._client._errorHandler(e);
                     }
+                    for (const state of this._pendingState.values()) {
+                        state.reject(e);
+                    }
+                    this._pendingState.clear();
                     this.reconnect();
                     this._recvLoopHandle = undefined;
                     return;
