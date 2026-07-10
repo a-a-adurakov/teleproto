@@ -6,7 +6,7 @@ import { AsyncQueue } from "../../extensions";
 import { AbridgedPacketCodec } from "./codec/Abridged";
 import { FullPacketCodec } from "./codec/Full";
 import { ProxyInterface } from "./TCPMTProxy";
-import { FloodWaitError, InvalidDCError, RPCError } from "../../errors";
+import { FloodWaitError, InvalidDCError, InvalidBufferError, RPCError } from "../../errors";
 
 interface ConnectionInterfaceParams {
     ip: string;
@@ -246,18 +246,18 @@ class PacketCodec {
      * Throws TransportError if so, otherwise returns false.
      */
     protected checkTransportError(header: Buffer): void {
-        if (header.length !== 4) return;
+        if (header.length !== 4) 
+            return;
         const code = -header.readInt32LE(0);
+        if (code === 404) {
+            throw new InvalidBufferError(header);
+        }
         if (code === 429) {
-            throw new FloodWaitError({
-                capture: 30,
-                request: null  
-            });
+            throw new FloodWaitError({ request: null as any, capture: 30 });
         }
         if (code === 444) {
             throw new InvalidDCError("INVALID_DC", null as any, code);
         }
-        // 404 and others propagate as RPCError for recv loop handling
         if (code > 0) {
             throw new RPCError(`TRANSPORT_ERROR_${code}`, null as any, code);
         }

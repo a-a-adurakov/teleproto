@@ -169,16 +169,15 @@ class PacketCodec {
         if (header.length !== 4)
             return;
         const code = -header.readInt32LE(0);
+        if (code === 404) {
+            throw new errors_1.InvalidBufferError(header);
+        }
         if (code === 429) {
-            throw new errors_1.FloodWaitError({
-                capture: 30,
-                request: null
-            });
+            throw new errors_1.FloodWaitError({ request: null, capture: 30 });
         }
         if (code === 444) {
             throw new errors_1.InvalidDCError("INVALID_DC", null, code);
         }
-        // 404 and others propagate as RPCError for recv loop handling
         if (code > 0) {
             throw new errors_1.RPCError(`TRANSPORT_ERROR_${code}`, null, code);
         }
