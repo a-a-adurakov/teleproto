@@ -736,7 +736,12 @@ export class MTProtoSender {
                             capture: otherDc.id,
                         });
                     }
-                    this.reconnect();
+                    // No other DC found — can't recover
+                    this._log.error(`Transport 444 for dc ${this._dcId}, no alternative DC available`);
+                    for (const state of this._pendingState.values()) {
+                        state.reject("No alternative datacenter available");
+                    }
+                    this.userDisconnected = true;
                     this._recvLoopHandle = undefined;
                     return;
                 } else {
