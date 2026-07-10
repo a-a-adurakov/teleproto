@@ -499,26 +499,31 @@ class MTProtoSender {
                     continue;
                 }
                 else if (e instanceof errors_1.InvalidBufferError) {
+                    const error = new errors_1.RPCError('TRANSPORT ERROR');
                     if (e.code === 404) {
-                        if (this._currentRetries > this._reconnectRetries) {
-                            this._log.error(`[404] Max retries reached for dc ${this._dcId}, giving up`);
-                            for (const state of this._pendingState.values()) {
-                                state.reject("Maximum reconnection retries reached for broken auth key");
-                            }
-                            this.userDisconnected = true;
-                            this._recvLoopHandle = undefined;
-                        }
-                        else {
+                        if (this._currentRetries <= this._reconnectRetries) {
                             this._handleBadAuthKey();
                             this.reconnect();
                             this._recvLoopHandle = undefined;
+                            return;
                         }
-                        return;
+                        error.errorMessage = `[404] Max retries ${this._dcId}`;
                     }
                     if (e.code === 429) {
-                        for (const state of this._pendingState.values()) {
-                            state.reject("Transport flood (429)");
-                        }
+                        error.errorMessage = `[429] Transport flood `;
+                    }
+                    if (e.code === 444) {
+                        error.errorMessage = `[444] - alternative not found dc ${this._dcId}`;
+                    }
+                    else {
+                        error.errorMessage = `[Unknown] transport error ${e.code} for dc ${this._dcId}`;
+                    }
+                    for (const state of this._pendingState.values()) {
+                        state.reject(error);
+                    }
+                    this.userDisconnected = true;
+                    this._recvLoopHandle = undefined;
+                    if (e.code === 429) {
                         this._pendingState.clear();
                         throw new errors_1.FloodWaitError({
                             request: undefined,
@@ -526,33 +531,17 @@ class MTProtoSender {
                         });
                     }
                     if (e.code === 444) {
-                        const otherDc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => !dc.cdn
+                        const dc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => !dc.cdn
                             && !dc.tcpoOnly
                             && dc.id !== this._dcId);
-                        if (otherDc) {
-                            this._log.warn(`Transport 404 for dc ${this._dcId}, trying dc ${otherDc.id}`);
-                            for (const state of this._pendingState.values()) {
-                                state.reject(`Transport 404 — migrating to dc ${otherDc.id}`);
-                            }
+                        if (dc) {
                             this._pendingState.clear();
                             throw new errors_1.NetworkMigrateError({
                                 request: undefined,
-                                capture: otherDc.id
+                                capture: dc.id
                             });
                         }
-                        this._log.error(`Transport 444 for dc ${this._dcId}, no alternative DC`);
-                        for (const state of this._pendingState.values()) {
-                            state.reject("No alternative datacenter available");
-                        }
-                        this._recvLoopHandle = undefined;
-                        return;
                     }
-                    // Unknown transport error — can't recover
-                    this._log.error(`Unknown transport error ${e.code} for dc ${this._dcId}`);
-                    for (const state of this._pendingState.values()) {
-                        state.reject(`Unknown transport error ${e.code}`);
-                    }
-                    this._recvLoopHandle = undefined;
                     return;
                 }
                 else {

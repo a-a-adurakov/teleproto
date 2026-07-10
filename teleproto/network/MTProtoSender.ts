@@ -713,63 +713,52 @@ export class MTProtoSender {
                     );
                     continue;
                 } else if (e instanceof InvalidBufferError) {
+                    const error = new RPCError('TRANSPORT ERROR');
                     if (e.code === 404) {
-                        if (this._currentRetries > this._reconnectRetries) {
-                            this._log.error(`[404] Max retries reached for dc ${this._dcId}, giving up`);
-                            for (const state of this._pendingState.values()) {
-                                state.reject("Maximum reconnection retries reached for broken auth key");
-                            }
-                            this.userDisconnected = true;
-                            this._recvLoopHandle = undefined;
-                        }
-                        else {
+                        if (this._currentRetries <= this._reconnectRetries) {
                             this._handleBadAuthKey();
                             this.reconnect();
                             this._recvLoopHandle = undefined;
-                        }
-                        return;
+                            return;
+                        }error.errorMessage = `[404] Max retries ${this._dcId}`;
+                        
                     }
                     if (e.code === 429) {
-                        for (const state of this._pendingState.values()) {
-                            state.reject("Transport flood (429)");
-                        }
-                        this._pendingState.clear();
-                        throw new FloodWaitError({ 
-                            request: undefined,
-                            capture: 30 
-                        });
+                        error.errorMessage = `[429] Transport flood `;
                     }
                     if (e.code === 444) {
-                        const otherDc = this._client._config?.dcOptions?.find(
-                            (dc) => 
-                                !dc.cdn 
-                                && !dc.tcpoOnly
-                                && dc.id !== this._dcId
-                        );
-                        if (otherDc) {
-                            this._log.warn(`Transport 404 for dc ${this._dcId}, trying dc ${otherDc.id}`);
-                            for (const state of this._pendingState.values()) {
-                                state.reject(`Transport 404 — migrating to dc ${otherDc.id}`);
-                            }
-                            this._pendingState.clear();
-                            throw new NetworkMigrateError({ 
-                                request: undefined, 
-                                capture: otherDc.id 
-                            });
-                        }
-                        this._log.error(`Transport 444 for dc ${this._dcId}, no alternative DC`);
-                        for (const state of this._pendingState.values()) {
-                            state.reject("No alternative datacenter available");
-                        }
-                        this._recvLoopHandle = undefined;
-                        return;
+                        error.errorMessage = `[444] - alternative not found dc ${this._dcId}`;
                     }
-                        // Unknown transport error — can't recover
-                        this._log.error(`Unknown transport error ${e.code} for dc ${this._dcId}`);
-                        for (const state of this._pendingState.values()) {
-                            state.reject(`Unknown transport error ${e.code}`);
-                        }
-                        this._recvLoopHandle = undefined;
+                    else {
+                        error.errorMessage = `[Unknown] transport error ${e.code} for dc ${this._dcId}`
+                    }
+                            for (const state of this._pendingState.values()) {
+                                state.reject(error);
+                            }
+                            this.userDisconnected = true;
+                            this._recvLoopHandle  = undefined;
+                            if (e.code === 429) {
+                                this._pendingState.clear();
+                                throw new FloodWaitError({ 
+                                    request: undefined,
+                                    capture: 30 
+                                });
+                            }
+                            if (e.code === 444) {
+                                const dc = this._client._config?.dcOptions?.find(
+                                    (dc) => 
+                                        !dc.cdn 
+                                        && !dc.tcpoOnly
+                                        && dc.id !== this._dcId
+                                );
+                                if (dc) {
+                                    this._pendingState.clear();
+                                    throw new NetworkMigrateError({ 
+                                        request: undefined, 
+                                        capture: dc.id 
+                                    });
+                                }
+                            }
                     return;
                 } else {
                     this._log.error("Unhandled error while receiving data", e);
