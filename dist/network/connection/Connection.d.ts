@@ -10,7 +10,7 @@ interface ConnectionInterfaceParams {
     socket: typeof PromisedNetSockets;
     dcSecret?: Buffer;
 }
-/** Anything that can read n bytes from the network (socket, obfuscation layer). */
+/** Anything that can read n bytes (socket, obfuscation layer). */
 export interface PacketReader {
     read(n: number): Promise<Buffer>;
 }
@@ -65,6 +65,10 @@ declare class Connection {
     _recv(): Promise<Buffer<ArrayBufferLike>>;
     toString(): string;
 }
+/**
+ * Connection with an obfuscation layer.
+ * Subclasses implement `_createObfuscation()` to provide their layer.
+ */
 declare abstract class ObfuscatedConnection extends Connection {
     protected abstract _createObfuscation(): ObfuscationLayer;
     _initConn(): Promise<void>;

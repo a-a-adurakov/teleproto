@@ -24,7 +24,6 @@ class Connection {
         this._connected = false;
         this._sendTask = undefined;
         this._recvTask = undefined;
-        this._obfuscation = undefined; // TcpObfuscated and MTProxy
         this._sendArray = new extensions_1.AsyncQueue();
         this._recvArray = new extensions_1.AsyncQueue();
         this._abortController = new AbortController();
@@ -35,11 +34,9 @@ class Connection {
         this._codec = new this.PacketCodecClass(this);
         await this.socket.connect(this._port, this._ip);
         this._log.debug("Finished connecting");
-        // await this.socket.connect({host: this._ip, port: this._port});
         await this._initConn();
     }
     async connect() {
-        // Reset abort controller to have a fresh signal
         this._abortController = new AbortController();
         await this._connect();
         this._connected = true;
@@ -53,7 +50,6 @@ class Connection {
             return;
         }
         this._connected = false;
-        // Signal abort to any pending operations
         this._abortController.abort();
         void this._recvArray.push(undefined);
         await this.socket.close();
@@ -130,6 +126,10 @@ class Connection {
     }
 }
 exports.Connection = Connection;
+/**
+ * Connection with an obfuscation layer.
+ * Subclasses implement `_createObfuscation()` to provide their layer.
+ */
 class ObfuscatedConnection extends Connection {
     async _initConn() {
         const obf = this._createObfuscation();
@@ -157,10 +157,8 @@ class PacketCodec {
     }
     encodePacket(data) {
         throw new Error("Not Implemented");
-        // Override
     }
     async readPacket(reader) {
-        // override
         throw new Error("Not Implemented");
     }
     /**

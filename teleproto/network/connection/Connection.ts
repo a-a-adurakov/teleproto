@@ -18,7 +18,7 @@ interface ConnectionInterfaceParams {
     dcSecret?: Buffer;
 }
 
-/** Anything that can read n bytes from the network (socket, obfuscation layer). */
+/** Anything that can read n bytes (socket, obfuscation layer). */
 export interface PacketReader {
     read(n: number): Promise<Buffer>;
 }
@@ -79,7 +79,6 @@ class Connection {
         this._connected = false;
         this._sendTask = undefined;
         this._recvTask = undefined;
-        this._obfuscation = undefined; // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue();
         this._recvArray = new AsyncQueue();
         this._abortController = new AbortController();
@@ -91,14 +90,11 @@ class Connection {
         this._codec = new this.PacketCodecClass!(this);
         await this.socket.connect(this._port, this._ip);
         this._log.debug("Finished connecting");
-        // await this.socket.connect({host: this._ip, port: this._port});
         await this._initConn();
     }
 
     async connect() {
-        // Reset abort controller to have a fresh signal
         this._abortController = new AbortController();
-        
         await this._connect();
         this._connected = true;
 
@@ -112,9 +108,7 @@ class Connection {
         if (!this._connected) {
             return;
         }
-
         this._connected = false;
-        // Signal abort to any pending operations
         this._abortController.abort();
         void this._recvArray.push(undefined);
         await this.socket.close();
@@ -200,6 +194,10 @@ class Connection {
     }
 }
 
+/**
+ * Connection with an obfuscation layer.
+ * Subclasses implement `_createObfuscation()` to provide their layer.
+ */
 abstract class ObfuscatedConnection extends Connection {
     protected abstract _createObfuscation(): ObfuscationLayer;
 
@@ -235,14 +233,11 @@ class PacketCodec {
 
     encodePacket(data: Buffer): Buffer {
         throw new Error("Not Implemented");
-
-        // Override
     }
 
     async readPacket(
         reader: PacketReader
     ): Promise<Buffer> {
-        // override
         throw new Error("Not Implemented");
     }
 
