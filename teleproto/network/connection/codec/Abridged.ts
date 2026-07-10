@@ -7,7 +7,7 @@ import bigInt from "big-integer";
 export class AbridgedPacketCodec extends PacketCodec {
     static tag = Buffer.from("ef", "hex");
     static obfuscateTag = Buffer.from("efefefef", "hex");
-    private tag: Buffer;
+    tag: Buffer;
     obfuscateTag: Buffer;
     private _log?: Logger;
 

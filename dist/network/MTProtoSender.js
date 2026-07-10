@@ -504,6 +504,7 @@ class MTProtoSender {
                         for (const state of this._pendingState.values()) {
                             state.reject("Maximum reconnection retries reached for broken auth key");
                         }
+                        this.userDisconnected = true;
                         this._recvLoopHandle = undefined;
                         return;
                     }
@@ -514,7 +515,9 @@ class MTProtoSender {
                 }
                 else if (e instanceof errors_1.InvalidDCError) {
                     // Transport 404 → 444: try another DC from config
-                    const otherDc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => dc.id !== this._dcId && !dc.cdn && !dc.tcpoOnly);
+                    const otherDc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => !dc.cdn
+                        && !dc.tcpoOnly
+                        && dc.id !== this._dcId);
                     if (otherDc) {
                         this._log.warn(`Transport 444 for dc ${this._dcId}, trying dc ${otherDc.id}`);
                         throw new errors_1.PhoneMigrateError({

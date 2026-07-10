@@ -641,7 +641,7 @@ export abstract class TelegramBaseClient {
                     return sender;
                 }
                 if (this._errorHandler) {
-                    await this._errorHandler(err as Error);
+                    await this._errorHandler(err);
                 } else {
                     this._log.error("Error while connecting sender", err);
                 }

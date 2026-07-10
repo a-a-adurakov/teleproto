@@ -717,7 +717,8 @@ export class MTProtoSender {
                         for (const state of this._pendingState.values()) {
                             state.reject("Maximum reconnection retries reached for broken auth key");
                         }
-                        this._recvLoopHandle = undefined;
+                        this.userDisconnected = true;
+                        this._recvLoopHandle  = undefined;
                         return;
                     }
                         this._handleBadAuthKey();
@@ -727,7 +728,9 @@ export class MTProtoSender {
                 } else if (e instanceof InvalidDCError) {
                     // Transport 404 → 444: try another DC from config
                     const otherDc = this._client._config?.dcOptions?.find(
-                        (dc) => dc.id !== this._dcId && !dc.cdn && !dc.tcpoOnly
+                        (dc) => !dc.cdn 
+                                && !dc.tcpoOnly
+                                && dc.id !== this._dcId
                     );
                     if (otherDc) {
                         this._log.warn(`Transport 444 for dc ${this._dcId}, trying dc ${otherDc.id}`);
@@ -742,7 +745,7 @@ export class MTProtoSender {
                         state.reject("No alternative datacenter available");
                     }
                     this.userDisconnected = true;
-                    this._recvLoopHandle = undefined;
+                    this._recvLoopHandle  = undefined;
                     return;
                 } else {
                     this._log.error("Unhandled error while receiving data", e);
@@ -1247,9 +1250,11 @@ export class MTProtoSender {
         this._sendQueue.prepend(toResend);
 
         if (toQueryStatus.length > 0) {
-            const msgIds = toQueryStatus
-                .filter((s) => s.msgId != undefined)
-                .map((s) => s.msgId!);
+            const msgIds = toQueryStatus.filter(
+                (s) => s.msgId != undefined
+            ).map(
+                (s) => s.msgId!
+            );
             if (msgIds.length > 0) {
                 this._log.debug(
                     `Querying status of ${msgIds.length} acknowledged requests`

@@ -271,7 +271,8 @@ export class ConnectionTCPTLSSecret extends ObfuscatedConnection {
                 this._fakeTlsDomain
             );
             await tls.handshake();
-            this.socket = tls as unknown as PromisedNetSockets;
+            // @ts-ignore
+            this.socket = tls;
         }
         await super._initConn();
     }

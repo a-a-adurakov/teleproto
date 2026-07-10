@@ -12,7 +12,7 @@ import type { Logger } from "../../../extensions";
 export class IntermediatePacketCodec extends PacketCodec {
     static tag = Buffer.from("eeeeeeee", "hex");
     static obfuscateTag = Buffer.from("eeeeeeee", "hex");
-    private tag: Buffer;
+    tag: Buffer;
     obfuscateTag: Buffer;
     private _log?: Logger;
 

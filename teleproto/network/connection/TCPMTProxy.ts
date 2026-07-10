@@ -564,17 +564,17 @@ export class TCPMTProxy extends ObfuscatedConnection {
 
     constructor({
         dcId,
-        loggers,
         proxy,
         socket,
+        loggers
     }: TCPMTProxyInterfaceParams) {
         super({
             ip: proxy.ip,
             port: proxy.port,
             dcId,
-            loggers,
-            socket,
             proxy,
+            socket,
+            loggers
         });
 
         if (!("MTProxy" in proxy)) {

@@ -15,10 +15,10 @@ export class FullPacketCodec extends PacketCodec {
         // https://core.telegram.org/mtproto#tcp-transport
         // total length, sequence number, packet and checksum (CRC32)
         const length = data.length + 12;
-        const e = Buffer.alloc(8);
-        e.writeInt32LE(length, 0);
-        e.writeInt32LE(this._sendCounter, 4);
-        data = Buffer.concat([e, data]);
+        const buffer = Buffer.alloc(8);
+            buffer.writeInt32LE(length, 0);
+            buffer.writeInt32LE(this._sendCounter, 4);
+        data = Buffer.concat([buffer, data]);
         const crc = Buffer.alloc(4);
         crc.writeUInt32LE(crc32(data), 0);
         this._sendCounter += 1;
