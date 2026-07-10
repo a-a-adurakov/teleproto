@@ -377,13 +377,15 @@ class TCPMTProxy extends Connection_1.ObfuscatedConnection {
             socket,
             proxy,
         });
-        this.ObfuscatedIO = MTProxyIO;
         if (!("MTProxy" in proxy)) {
             throw new Error("This connection only supports MTProxies");
         }
         const parsed = parseProxySecret(proxy.secret);
         this._secret = parsed.key;
         this._fakeTlsDomain = parsed.fakeTlsDomain;
+    }
+    _createObfuscation() {
+        return new MTProxyIO(this);
     }
     async _initConn() {
         if (this._fakeTlsDomain) {

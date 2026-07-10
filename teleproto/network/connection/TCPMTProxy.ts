@@ -171,7 +171,7 @@ interface ByteStream {
  * @internal
  */
 class MTProxyIO {
-    header?: Buffer;
+    header!: Buffer;
 
     private readonly stream: ByteStream;
     private readonly packetCodec: AbridgedPacketCodec;
@@ -559,8 +559,6 @@ class FakeTlsSocket implements ByteStream {
  * and the client will select the correct connection class automatically.
  */
 export class TCPMTProxy extends ObfuscatedConnection {
-    ObfuscatedIO = MTProxyIO;
-
     _secret: Buffer;
     _fakeTlsDomain?: string;
 
@@ -585,6 +583,10 @@ export class TCPMTProxy extends ObfuscatedConnection {
         const parsed = parseProxySecret(proxy.secret);
         this._secret = parsed.key;
         this._fakeTlsDomain = parsed.fakeTlsDomain;
+    }
+
+    protected _createObfuscation(): MTProxyIO {
+        return new MTProxyIO(this);
     }
 
     async _initConn(): Promise<void> {

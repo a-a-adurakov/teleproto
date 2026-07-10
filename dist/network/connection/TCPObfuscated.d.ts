@@ -1,7 +1,7 @@
 import { ObfuscatedConnection } from "./Connection";
 import { AbridgedPacketCodec } from "./codec/Abridged";
 declare class ObfuscatedIO {
-    header?: Buffer;
+    header: Buffer;
     private connection;
     private _encrypt?;
     private _decrypt?;
@@ -12,7 +12,7 @@ declare class ObfuscatedIO {
     write(data: Buffer): void;
 }
 export declare class ConnectionTCPObfuscated extends ObfuscatedConnection {
-    ObfuscatedIO: typeof ObfuscatedIO;
     PacketCodecClass: typeof AbridgedPacketCodec;
+    protected _createObfuscation(): ObfuscatedIO;
 }
 export {};

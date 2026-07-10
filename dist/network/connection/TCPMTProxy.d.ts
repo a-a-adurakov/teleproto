@@ -93,7 +93,7 @@ interface TCPMTProxyInterfaceParams {
  * @internal
  */
 declare class MTProxyIO {
-    header?: Buffer;
+    header: Buffer;
     private readonly stream;
     private readonly packetCodec;
     private readonly secret;
@@ -117,10 +117,10 @@ declare class MTProxyIO {
  * and the client will select the correct connection class automatically.
  */
 export declare class TCPMTProxy extends ObfuscatedConnection {
-    ObfuscatedIO: typeof MTProxyIO;
     _secret: Buffer;
     _fakeTlsDomain?: string;
     constructor({ dcId, loggers, proxy, socket, }: TCPMTProxyInterfaceParams);
+    protected _createObfuscation(): MTProxyIO;
     _initConn(): Promise<void>;
 }
 /**

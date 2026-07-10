@@ -16,7 +16,7 @@ export declare function parseDCSecret(secret: Buffer): {
  * Reuses the same key derivation as MTProxy but without the MTProxy dependency.
  */
 declare class DCSecretObfuscatedIO {
-    header?: Buffer;
+    header: Buffer;
     private readonly stream;
     private readonly packetCodec;
     private readonly secret;
@@ -33,23 +33,22 @@ declare class DCSecretObfuscatedIO {
  * Connection for DCs with `\xdd` secret prefix (Padded Intermediate + obfuscation).
  */
 export declare class ConnectionTCPDDSecret extends ObfuscatedConnection {
-    ObfuscatedIO: typeof DCSecretObfuscatedIO;
     PacketCodecClass: typeof AbridgedPacketCodec;
     _secret: Buffer;
     _dcId: number;
     constructor(params: any);
-    _initConn(): Promise<void>;
+    protected _createObfuscation(): DCSecretObfuscatedIO;
 }
 /**
  * Connection for DCs with `\xee` secret prefix (Fake TLS + obfuscation).
  */
 export declare class ConnectionTCPTLSSecret extends ObfuscatedConnection {
-    ObfuscatedIO: typeof DCSecretObfuscatedIO;
     PacketCodecClass: typeof AbridgedPacketCodec;
     _secret: Buffer;
     _dcId: number;
     _fakeTlsDomain?: string;
     constructor(params: any);
+    protected _createObfuscation(): DCSecretObfuscatedIO;
     _initConn(): Promise<void>;
 }
 export {};

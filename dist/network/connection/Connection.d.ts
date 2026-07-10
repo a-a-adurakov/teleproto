@@ -65,7 +65,8 @@ declare class Connection {
     _recv(): Promise<Buffer<ArrayBufferLike>>;
     toString(): string;
 }
-declare class ObfuscatedConnection extends Connection {
+declare abstract class ObfuscatedConnection extends Connection {
+    protected abstract _createObfuscation(): ObfuscationLayer;
     _initConn(): Promise<void>;
     _send(data: Buffer): Promise<void>;
     _recv(): Promise<Buffer<ArrayBufferLike>>;

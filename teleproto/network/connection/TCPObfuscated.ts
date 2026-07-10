@@ -5,7 +5,7 @@ import { CTR } from "../../crypto/CTR";
 import { PromisedNetSockets } from "../../extensions";
 
 class ObfuscatedIO {
-    header?: Buffer = undefined;
+    header!: Buffer;
     private connection: PromisedNetSockets;
     private _encrypt?: CTR;
     private _decrypt?: CTR;
@@ -82,6 +82,9 @@ class ObfuscatedIO {
 }
 
 export class ConnectionTCPObfuscated extends ObfuscatedConnection {
-    ObfuscatedIO = ObfuscatedIO;
     PacketCodecClass = AbridgedPacketCodec;
+
+    protected _createObfuscation(): ObfuscatedIO {
+        return new ObfuscatedIO(this);
+    }
 }

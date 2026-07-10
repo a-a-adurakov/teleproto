@@ -132,11 +132,8 @@ class Connection {
 exports.Connection = Connection;
 class ObfuscatedConnection extends Connection {
     async _initConn() {
-        const obf = new this.ObfuscatedIO(this);
+        const obf = this._createObfuscation();
         await obf.initHeader();
-        if (!obf.header) {
-            throw new Error("Obfuscation header not initialized");
-        }
         this._obfuscation = obf;
         this.socket.write(obf.header);
     }

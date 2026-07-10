@@ -7,7 +7,6 @@ const Abridged_1 = require("./codec/Abridged");
 const CTR_1 = require("../../crypto/CTR");
 class ObfuscatedIO {
     constructor(connection) {
-        this.header = undefined;
         this.connection = connection.socket;
         this._packetClass = connection.PacketCodecClass;
     }
@@ -71,8 +70,10 @@ class ObfuscatedIO {
 class ConnectionTCPObfuscated extends Connection_1.ObfuscatedConnection {
     constructor() {
         super(...arguments);
-        this.ObfuscatedIO = ObfuscatedIO;
         this.PacketCodecClass = Abridged_1.AbridgedPacketCodec;
+    }
+    _createObfuscation() {
+        return new ObfuscatedIO(this);
     }
 }
 exports.ConnectionTCPObfuscated = ConnectionTCPObfuscated;

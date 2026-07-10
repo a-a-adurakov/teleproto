@@ -68,7 +68,7 @@ export function parseDCSecret(secret: Buffer): {
  * Reuses the same key derivation as MTProxy but without the MTProxy dependency.
  */
 class DCSecretObfuscatedIO {
-    header?: Buffer;
+    header!: Buffer;
     private readonly stream: ByteStream;
     private readonly packetCodec: AbridgedPacketCodec;
     private readonly secret: Buffer;
@@ -226,7 +226,6 @@ class FakeTlsSocket implements ByteStream {
  * Connection for DCs with `\xdd` secret prefix (Padded Intermediate + obfuscation).
  */
 export class ConnectionTCPDDSecret extends ObfuscatedConnection {
-    ObfuscatedIO = DCSecretObfuscatedIO;
     PacketCodecClass = AbridgedPacketCodec;
     _secret: Buffer;
     _dcId: number;
@@ -238,17 +237,8 @@ export class ConnectionTCPDDSecret extends ObfuscatedConnection {
         this._dcId = params.dcId;
     }
 
-    async _initConn(): Promise<void> {
-        const obf = new (this.ObfuscatedIO as any)(
-            this,
-            Buffer.from("dddddddd", "hex")
-        );
-        await obf.initHeader();
-        if (!obf.header) {
-            throw new Error("Obfuscation header not initialized");
-        }
-        this._obfuscation = obf;
-        this.socket.write(obf.header);
+    protected _createObfuscation(): DCSecretObfuscatedIO {
+        return new DCSecretObfuscatedIO(this, Buffer.from("dddddddd", "hex"));
     }
 }
 
@@ -256,7 +246,6 @@ export class ConnectionTCPDDSecret extends ObfuscatedConnection {
  * Connection for DCs with `\xee` secret prefix (Fake TLS + obfuscation).
  */
 export class ConnectionTCPTLSSecret extends ObfuscatedConnection {
-    ObfuscatedIO = DCSecretObfuscatedIO;
     PacketCodecClass = AbridgedPacketCodec;
     _secret: Buffer;
     _dcId: number;
@@ -270,6 +259,10 @@ export class ConnectionTCPTLSSecret extends ObfuscatedConnection {
         this._fakeTlsDomain = parsed.fakeTlsDomain;
     }
 
+    protected _createObfuscation(): DCSecretObfuscatedIO {
+        return new DCSecretObfuscatedIO(this, Buffer.from("efefefef", "hex"));
+    }
+
     async _initConn(): Promise<void> {
         if (this._fakeTlsDomain) {
             const tls = new FakeTlsSocket(
@@ -280,15 +273,6 @@ export class ConnectionTCPTLSSecret extends ObfuscatedConnection {
             await tls.handshake();
             this.socket = tls as unknown as PromisedNetSockets;
         }
-        const obf = new (this.ObfuscatedIO as any)(
-            this,
-            Buffer.from("efefefef", "hex")
-        );
-        await obf.initHeader();
-        if (!obf.header) {
-            throw new Error("Obfuscation header not initialized");
-        }
-        this._obfuscation = obf;
-        this.socket.write(obf.header);
+        await super._initConn();
     }
 }

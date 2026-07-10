@@ -182,20 +182,13 @@ class FakeTlsSocket {
 class ConnectionTCPDDSecret extends Connection_1.ObfuscatedConnection {
     constructor(params) {
         super(params);
-        this.ObfuscatedIO = DCSecretObfuscatedIO;
         this.PacketCodecClass = Abridged_1.AbridgedPacketCodec;
         const parsed = parseDCSecret(params.dcSecret);
         this._secret = parsed.key;
         this._dcId = params.dcId;
     }
-    async _initConn() {
-        const obf = new this.ObfuscatedIO(this, Buffer.from("dddddddd", "hex"));
-        await obf.initHeader();
-        if (!obf.header) {
-            throw new Error("Obfuscation header not initialized");
-        }
-        this._obfuscation = obf;
-        this.socket.write(obf.header);
+    _createObfuscation() {
+        return new DCSecretObfuscatedIO(this, Buffer.from("dddddddd", "hex"));
     }
 }
 exports.ConnectionTCPDDSecret = ConnectionTCPDDSecret;
@@ -205,12 +198,14 @@ exports.ConnectionTCPDDSecret = ConnectionTCPDDSecret;
 class ConnectionTCPTLSSecret extends Connection_1.ObfuscatedConnection {
     constructor(params) {
         super(params);
-        this.ObfuscatedIO = DCSecretObfuscatedIO;
         this.PacketCodecClass = Abridged_1.AbridgedPacketCodec;
         const parsed = parseDCSecret(params.dcSecret);
         this._secret = parsed.key;
         this._dcId = params.dcId;
         this._fakeTlsDomain = parsed.fakeTlsDomain;
+    }
+    _createObfuscation() {
+        return new DCSecretObfuscatedIO(this, Buffer.from("efefefef", "hex"));
     }
     async _initConn() {
         if (this._fakeTlsDomain) {
@@ -218,13 +213,7 @@ class ConnectionTCPTLSSecret extends Connection_1.ObfuscatedConnection {
             await tls.handshake();
             this.socket = tls;
         }
-        const obf = new this.ObfuscatedIO(this, Buffer.from("efefefef", "hex"));
-        await obf.initHeader();
-        if (!obf.header) {
-            throw new Error("Obfuscation header not initialized");
-        }
-        this._obfuscation = obf;
-        this.socket.write(obf.header);
+        await super._initConn();
     }
 }
 exports.ConnectionTCPTLSSecret = ConnectionTCPTLSSecret;

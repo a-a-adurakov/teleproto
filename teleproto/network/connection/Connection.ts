@@ -200,13 +200,12 @@ class Connection {
     }
 }
 
-class ObfuscatedConnection extends Connection {
+abstract class ObfuscatedConnection extends Connection {
+    protected abstract _createObfuscation(): ObfuscationLayer;
+
     async _initConn() {
-        const obf = new (this as any).ObfuscatedIO(this);
+        const obf = this._createObfuscation();
         await obf.initHeader();
-        if (!obf.header) {
-            throw new Error("Obfuscation header not initialized");
-        }
         this._obfuscation = obf;
         this.socket.write(obf.header);
     }
