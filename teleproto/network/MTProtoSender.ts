@@ -33,7 +33,7 @@ import {
     TypeNotFoundError,
     NotFoundError,
     InvalidDCError,
-    PhoneMigrateError,
+    NetworkMigrateError,
     FloodWaitError,
 } from "../errors";
 import { Connection } from "./connection";
@@ -743,8 +743,8 @@ export class MTProtoSender {
                                 && dc.id !== this._dcId
                         );
                         if (otherDc) {
-                            this._log.warn(`Transport 444 for dc ${this._dcId}, trying dc ${otherDc.id}`);
-                            throw new PhoneMigrateError({ 
+                            this._log.warn(`Transport 404 for dc ${this._dcId}, trying dc ${otherDc.id}`);
+                            throw new NetworkMigrateError({ 
                                 request: undefined, 
                                 capture: otherDc.id 
                             });

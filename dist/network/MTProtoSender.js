@@ -526,8 +526,8 @@ class MTProtoSender {
                             && !dc.tcpoOnly
                             && dc.id !== this._dcId);
                         if (otherDc) {
-                            this._log.warn(`Transport 444 for dc ${this._dcId}, trying dc ${otherDc.id}`);
-                            throw new errors_1.PhoneMigrateError({
+                            this._log.warn(`Transport 404 for dc ${this._dcId}, trying dc ${otherDc.id}`);
+                            throw new errors_1.NetworkMigrateError({
                                 request: undefined,
                                 capture: otherDc.id
                             });
