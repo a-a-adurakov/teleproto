@@ -514,16 +514,18 @@ class MTProtoSender {
                         return;
                     }
                     if (e.code === 429) {
-                        this._log.warn(`Transport flood for dc ${this._dcId}`);
-                        this.reconnect();
-                        this._recvLoopHandle = undefined;
-                        return;
+                        throw new errors_1.FloodWaitError({ request: undefined, capture: 30 });
                     }
                     if (e.code === 444) {
-                        const otherDc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => !dc.cdn && !dc.tcpoOnly && dc.id !== this._dcId);
+                        const otherDc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => !dc.cdn
+                            && !dc.tcpoOnly
+                            && dc.id !== this._dcId);
                         if (otherDc) {
                             this._log.warn(`Transport 444 for dc ${this._dcId}, trying dc ${otherDc.id}`);
-                            throw new errors_1.PhoneMigrateError({ request: undefined, capture: otherDc.id });
+                            throw new errors_1.PhoneMigrateError({
+                                request: undefined,
+                                capture: otherDc.id
+                            });
                         }
                         this._log.error(`Transport 444 for dc ${this._dcId}, no alternative DC`);
                         for (const state of this._pendingState.values()) {
