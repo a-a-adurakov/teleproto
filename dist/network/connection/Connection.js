@@ -168,22 +168,10 @@ class PacketCodec {
     checkTransportError(header) {
         if (header.length !== 4)
             return;
-        const code = -header.readInt32LE(0);
-        if (code === 404) {
-            throw new errors_1.NotFoundError(`TRANSPORT ${code}`, undefined, code);
-        }
-        if (code === 429) {
-            throw new errors_1.FloodWaitError({
-                capture: 30,
-                request: undefined
-            });
-        }
-        if (code === 444) {
-            throw new errors_1.InvalidDCError("TRANSPORT ${code}", undefined, code);
-        }
-        if (code > 0) {
-            throw new errors_1.RPCError(`TRANSPORT ERROR ${code}`, undefined, code);
-        }
+        const val = header.readInt32LE(0);
+        if (val >= 0)
+            return; // positive = not a transport error
+        throw new errors_1.InvalidBufferError(header);
     }
 }
 exports.PacketCodec = PacketCodec;

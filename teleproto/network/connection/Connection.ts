@@ -247,24 +247,10 @@ class PacketCodec {
      * Throws TransportError if so, otherwise returns false.
      */
     protected checkTransportError(header: Buffer): void {
-        if (header.length !== 4) 
-            return;
-        const code = -header.readInt32LE(0);
-        if (code === 404) {
-            throw new NotFoundError(`TRANSPORT ${code}`, undefined, code);
-        }
-        if (code === 429) {
-            throw new FloodWaitError({
-                capture: 30,
-                request: undefined
-            });
-        }
-        if (code === 444) {
-            throw new InvalidDCError("TRANSPORT ${code}", undefined, code);
-        }
-        if (code > 0) {
-            throw new RPCError      (`TRANSPORT ERROR ${code}`, undefined, code);
-        }
+        if (header.length !== 4) return;
+        const val = header.readInt32LE(0);
+        if (val >= 0) return; // positive = not a transport error
+        throw new InvalidBufferError(header);
     }
 }
 

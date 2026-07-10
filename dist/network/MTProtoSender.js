@@ -498,39 +498,43 @@ class MTProtoSender {
                     this._log.warn(`Security error while unpacking a received message: ${e}`);
                     continue;
                 }
-                else if (e instanceof errors_1.NotFoundError) {
-                    if (this._currentRetries > this._reconnectRetries) {
-                        this._log.error(`[404] Max retries reached for dc ${this._dcId}, giving up`);
-                        for (const state of this._pendingState.values()) {
-                            state.reject("Maximum reconnection retries reached for broken auth key");
+                else if (e instanceof errors_1.InvalidBufferError) {
+                    if (e.code === 404) {
+                        if (this._currentRetries > this._reconnectRetries) {
+                            this._log.error(`[404] Max retries reached for dc ${this._dcId}, giving up`);
+                            for (const state of this._pendingState.values()) {
+                                state.reject("Maximum reconnection retries reached for broken auth key");
+                            }
+                            this._recvLoopHandle = undefined;
+                            return;
                         }
-                        this.userDisconnected = true;
+                        this._handleBadAuthKey();
+                        this.reconnect();
                         this._recvLoopHandle = undefined;
                         return;
                     }
-                    this._handleBadAuthKey();
+                    if (e.code === 429) {
+                        this._log.warn(`Transport flood for dc ${this._dcId}`);
+                        this.reconnect();
+                        this._recvLoopHandle = undefined;
+                        return;
+                    }
+                    if (e.code === 444) {
+                        const otherDc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => !dc.cdn && !dc.tcpoOnly && dc.id !== this._dcId);
+                        if (otherDc) {
+                            this._log.warn(`Transport 444 for dc ${this._dcId}, trying dc ${otherDc.id}`);
+                            throw new errors_1.PhoneMigrateError({ request: undefined, capture: otherDc.id });
+                        }
+                        this._log.error(`Transport 444 for dc ${this._dcId}, no alternative DC`);
+                        for (const state of this._pendingState.values()) {
+                            state.reject("No alternative datacenter available");
+                        }
+                        this._recvLoopHandle = undefined;
+                        return;
+                    }
+                    // Other transport errors
+                    this._log.warn(`Transport error ${e.code} for dc ${this._dcId}`);
                     this.reconnect();
-                    this._recvLoopHandle = undefined;
-                    return;
-                }
-                else if (e instanceof errors_1.InvalidDCError) {
-                    // Transport 404 → 444: try another DC from config
-                    const otherDc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => !dc.cdn
-                        && !dc.tcpoOnly
-                        && dc.id !== this._dcId);
-                    if (otherDc) {
-                        this._log.warn(`Transport 444 for dc ${this._dcId}, trying dc ${otherDc.id}`);
-                        throw new errors_1.PhoneMigrateError({
-                            request: undefined,
-                            capture: otherDc.id,
-                        });
-                    }
-                    // No other DC found — can't recover
-                    this._log.error(`Transport 444 for dc ${this._dcId}, no alternative DC available`);
-                    for (const state of this._pendingState.values()) {
-                        state.reject("No alternative datacenter available");
-                    }
-                    this.userDisconnected = true;
                     this._recvLoopHandle = undefined;
                     return;
                 }
@@ -978,9 +982,7 @@ class MTProtoSender {
         }
         this._sendQueue.prepend(toResend);
         if (toQueryStatus.length > 0) {
-            const msgIds = toQueryStatus
-                .filter((s) => s.msgId != undefined)
-                .map((s) => s.msgId);
+            const msgIds = toQueryStatus.filter((s) => s.msgId != undefined).map((s) => s.msgId);
             if (msgIds.length > 0) {
                 this._log.debug(`Querying status of ${msgIds.length} acknowledged requests`);
                 this.send(new tl_1.Api.MsgsStateReq({ msgIds }));
