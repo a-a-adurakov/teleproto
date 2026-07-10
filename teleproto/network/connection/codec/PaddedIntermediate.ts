@@ -1,6 +1,6 @@
-import { Connection, PacketCodec } from "../Connection";
+import { Connection, PacketCodec, PacketReader } from "../Connection";
 import { generateRandomBytes } from "../../../Helpers";
-import type { PromisedNetSockets, Logger } from "../../../extensions";
+import type { Logger } from "../../../extensions";
 
 /**
  * Padded Intermediate transport codec (ProtocolTypeDD).
@@ -39,7 +39,7 @@ export class DDPacketCodec extends PacketCodec {
         return Buffer.concat([len, data, padding]);
     }
 
-    async readPacket(reader: PromisedNetSockets): Promise<Buffer> {
+    async readPacket(reader: PacketReader): Promise<Buffer> {
         const header = await reader.read(4);
         const length = header.readUInt32LE(0);
 

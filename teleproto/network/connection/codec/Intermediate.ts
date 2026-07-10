@@ -1,5 +1,5 @@
-import { Connection, PacketCodec } from "../Connection";
-import type { PromisedNetSockets, Logger } from "../../../extensions";
+import { Connection, PacketCodec, PacketReader } from "../Connection";
+import type { Logger } from "../../../extensions";
 
 /**
  * Intermediate transport codec.
@@ -30,7 +30,7 @@ export class IntermediatePacketCodec extends PacketCodec {
         return Buffer.concat([len, data]);
     }
 
-    async readPacket(reader: PromisedNetSockets): Promise<Buffer> {
+    async readPacket(reader: PacketReader): Promise<Buffer> {
         const header = await reader.read(4);
         const length = header.readUInt32LE(0);
 

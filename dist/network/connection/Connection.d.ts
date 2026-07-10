@@ -10,6 +10,19 @@ interface ConnectionInterfaceParams {
     socket: typeof PromisedNetSockets;
     dcSecret?: Buffer;
 }
+/** Anything that can read n bytes from the network (socket, obfuscation layer). */
+export interface PacketReader {
+    read(n: number): Promise<Buffer>;
+}
+/** Anything that can write data to the network. */
+export interface PacketWriter {
+    write(data: Buffer): void;
+}
+/** Obfuscation layer (encrypt/decrypt + header init). */
+export interface ObfuscationLayer extends PacketReader, PacketWriter {
+    header?: Buffer;
+    initHeader(): Promise<void>;
+}
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
  *
@@ -62,7 +75,7 @@ declare class PacketCodec {
     private _conn;
     constructor(connection: any);
     encodePacket(data: Buffer): void;
-    readPacket(reader: PromisedNetSockets): Promise<Buffer>;
+    readPacket(reader: PacketReader): Promise<Buffer>;
     /**
      * Check if a 4-byte buffer is a transport error (404, 429, 444, etc).
      * Throws TransportError if so, otherwise returns false.

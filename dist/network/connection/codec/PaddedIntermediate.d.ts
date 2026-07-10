@@ -1,5 +1,4 @@
-import { Connection, PacketCodec } from "../Connection";
-import type { PromisedNetSockets } from "../../../extensions";
+import { Connection, PacketCodec, PacketReader } from "../Connection";
 /**
  * Padded Intermediate transport codec (ProtocolTypeDD).
  *
@@ -17,7 +16,7 @@ export declare class DDPacketCodec extends PacketCodec {
     private _log?;
     constructor(props: any);
     encodePacket(data: Buffer): Buffer<ArrayBuffer>;
-    readPacket(reader: PromisedNetSockets): Promise<Buffer>;
+    readPacket(reader: PacketReader): Promise<Buffer>;
 }
 /**
  * Padded Intermediate transport connection (ProtocolTypeDD).

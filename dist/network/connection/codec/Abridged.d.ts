@@ -1,5 +1,4 @@
-import { Connection, PacketCodec } from "../Connection";
-import type { PromisedNetSockets } from "../../../extensions";
+import { Connection, PacketCodec, PacketReader } from "../Connection";
 export declare class AbridgedPacketCodec extends PacketCodec {
     static tag: Buffer<ArrayBuffer>;
     static obfuscateTag: Buffer<ArrayBuffer>;
@@ -8,7 +7,7 @@ export declare class AbridgedPacketCodec extends PacketCodec {
     private _log?;
     constructor(props: any);
     encodePacket(data: Buffer): Buffer<ArrayBuffer>;
-    readPacket(reader: PromisedNetSockets): Promise<Buffer>;
+    readPacket(reader: PacketReader): Promise<Buffer>;
 }
 /**
  * This is the mode with the lowest overhead, as it will
