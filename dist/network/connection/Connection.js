@@ -22,7 +22,6 @@ class Connection {
         this._log = loggers;
         this._proxy = proxy;
         this._connected = false;
-        this._codec = undefined;
         this._sendTask = undefined;
         this._recvTask = undefined;
         this._obfuscation = undefined; // TcpObfuscated and MTProxy
@@ -132,19 +131,25 @@ class Connection {
 }
 exports.Connection = Connection;
 class ObfuscatedConnection extends Connection {
-    constructor() {
-        super(...arguments);
-        this.ObfuscatedIO = undefined;
-    }
     async _initConn() {
-        this._obfuscation = new this.ObfuscatedIO(this);
-        await this._obfuscation.initHeader();
-        this.socket.write(this._obfuscation.header);
+        const obf = new this.ObfuscatedIO(this);
+        await obf.initHeader();
+        if (!obf.header) {
+            throw new Error("Obfuscation header not initialized");
+        }
+        this._obfuscation = obf;
+        this.socket.write(obf.header);
     }
     async _send(data) {
+        if (!this._obfuscation) {
+            throw new Error("Obfuscation layer not initialized");
+        }
         this._obfuscation.write(this._codec.encodePacket(data));
     }
     async _recv() {
+        if (!this._obfuscation) {
+            throw new Error("Obfuscation layer not initialized");
+        }
         return await this._codec.readPacket(this._obfuscation);
     }
 }

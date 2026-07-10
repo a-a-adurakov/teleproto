@@ -30,7 +30,7 @@ export interface PacketWriter {
 
 /** Obfuscation layer (encrypt/decrypt + header init). */
 export interface ObfuscationLayer extends PacketReader, PacketWriter {
-    header?: Buffer;
+    header: Buffer;
     initHeader(): Promise<void>;
 }
 
@@ -55,8 +55,8 @@ class Connection {
     _connected: boolean;
     private _sendTask?: Promise<void>;
     private _recvTask?: Promise<void>;
-    protected _codec: any;
-    protected _obfuscation: any;
+    protected _codec!: PacketCodec;
+    protected _obfuscation?: ObfuscationLayer;
     _sendArray: AsyncQueue;
     _recvArray: AsyncQueue;
     private _abortController: AbortController;
@@ -77,7 +77,6 @@ class Connection {
         this._log = loggers;
         this._proxy = proxy;
         this._connected = false;
-        this._codec = undefined;
         this._sendTask = undefined;
         this._recvTask = undefined;
         this._obfuscation = undefined; // TcpObfuscated and MTProxy
@@ -202,31 +201,40 @@ class Connection {
 }
 
 class ObfuscatedConnection extends Connection {
-    ObfuscatedIO: any = undefined;
-
     async _initConn() {
-        this._obfuscation = new this.ObfuscatedIO(this);
-        await this._obfuscation.initHeader();
-        this.socket.write(this._obfuscation.header);
+        const obf = new (this as any).ObfuscatedIO(this);
+        await obf.initHeader();
+        if (!obf.header) {
+            throw new Error("Obfuscation header not initialized");
+        }
+        this._obfuscation = obf;
+        this.socket.write(obf.header);
     }
 
     async _send(data: Buffer) {
+        if (!this._obfuscation) {
+            throw new Error("Obfuscation layer not initialized");
+        }
         this._obfuscation.write(this._codec.encodePacket(data));
     }
 
     async _recv() {
+        if (!this._obfuscation) {
+            throw new Error("Obfuscation layer not initialized");
+        }
         return await this._codec.readPacket(this._obfuscation);
     }
 }
 
 class PacketCodec {
-    private _conn: any;
+    tag?: Buffer;
+    private _conn: Connection;
 
-    constructor(connection: any) {
+    constructor(connection: Connection) {
         this._conn = connection;
     }
 
-    encodePacket(data: Buffer) {
+    encodePacket(data: Buffer): Buffer {
         throw new Error("Not Implemented");
 
         // Override

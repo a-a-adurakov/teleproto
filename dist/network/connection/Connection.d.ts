@@ -20,7 +20,7 @@ export interface PacketWriter {
 }
 /** Obfuscation layer (encrypt/decrypt + header init). */
 export interface ObfuscationLayer extends PacketReader, PacketWriter {
-    header?: Buffer;
+    header: Buffer;
     initHeader(): Promise<void>;
 }
 /**
@@ -44,8 +44,8 @@ declare class Connection {
     _connected: boolean;
     private _sendTask?;
     private _recvTask?;
-    protected _codec: any;
-    protected _obfuscation: any;
+    protected _codec: PacketCodec;
+    protected _obfuscation?: ObfuscationLayer;
     _sendArray: AsyncQueue;
     _recvArray: AsyncQueue;
     private _abortController;
@@ -62,19 +62,19 @@ declare class Connection {
     _recvLoop(): Promise<void>;
     _initConn(): Promise<void>;
     _send(data: Buffer): Promise<void>;
-    _recv(): Promise<any>;
+    _recv(): Promise<Buffer<ArrayBufferLike>>;
     toString(): string;
 }
 declare class ObfuscatedConnection extends Connection {
-    ObfuscatedIO: any;
     _initConn(): Promise<void>;
     _send(data: Buffer): Promise<void>;
-    _recv(): Promise<any>;
+    _recv(): Promise<Buffer<ArrayBufferLike>>;
 }
 declare class PacketCodec {
+    tag?: Buffer;
     private _conn;
-    constructor(connection: any);
-    encodePacket(data: Buffer): void;
+    constructor(connection: Connection);
+    encodePacket(data: Buffer): Buffer;
     readPacket(reader: PacketReader): Promise<Buffer>;
     /**
      * Check if a 4-byte buffer is a transport error (404, 429, 444, etc).

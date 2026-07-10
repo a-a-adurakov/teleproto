@@ -59,11 +59,11 @@ function parseDCSecret(secret) {
  */
 class DCSecretObfuscatedIO {
     constructor(connection, dcTag) {
-        this.dcTag = dcTag;
-        this.dcId = connection._dcId;
-        this.secret = connection._secret;
         this.stream = connection.socket;
         this.packetCodec = connection.PacketCodecClass;
+        this.secret = connection._secret;
+        this.dcId = connection._dcId;
+        this.dcTag = dcTag;
     }
     async initHeader() {
         const header = pickObfuscationHeader();
@@ -189,9 +189,13 @@ class ConnectionTCPDDSecret extends Connection_1.ObfuscatedConnection {
         this._dcId = params.dcId;
     }
     async _initConn() {
-        this._obfuscation = new this.ObfuscatedIO(this, Buffer.from("dddddddd", "hex"));
-        await this._obfuscation.initHeader();
-        this.socket.write(this._obfuscation.header);
+        const obf = new this.ObfuscatedIO(this, Buffer.from("dddddddd", "hex"));
+        await obf.initHeader();
+        if (!obf.header) {
+            throw new Error("Obfuscation header not initialized");
+        }
+        this._obfuscation = obf;
+        this.socket.write(obf.header);
     }
 }
 exports.ConnectionTCPDDSecret = ConnectionTCPDDSecret;
@@ -214,9 +218,13 @@ class ConnectionTCPTLSSecret extends Connection_1.ObfuscatedConnection {
             await tls.handshake();
             this.socket = tls;
         }
-        this._obfuscation = new this.ObfuscatedIO(this, Buffer.from("efefefef", "hex"));
-        await this._obfuscation.initHeader();
-        this.socket.write(this._obfuscation.header);
+        const obf = new this.ObfuscatedIO(this, Buffer.from("efefefef", "hex"));
+        await obf.initHeader();
+        if (!obf.header) {
+            throw new Error("Obfuscation header not initialized");
+        }
+        this._obfuscation = obf;
+        this.socket.write(obf.header);
     }
 }
 exports.ConnectionTCPTLSSecret = ConnectionTCPTLSSecret;

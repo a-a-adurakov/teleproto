@@ -239,12 +239,16 @@ export class ConnectionTCPDDSecret extends ObfuscatedConnection {
     }
 
     async _initConn(): Promise<void> {
-        this._obfuscation = new (this.ObfuscatedIO as any)(
+        const obf = new (this.ObfuscatedIO as any)(
             this,
             Buffer.from("dddddddd", "hex")
         );
-        await this._obfuscation.initHeader();
-        this.socket.write(this._obfuscation.header);
+        await obf.initHeader();
+        if (!obf.header) {
+            throw new Error("Obfuscation header not initialized");
+        }
+        this._obfuscation = obf;
+        this.socket.write(obf.header);
     }
 }
 
@@ -276,11 +280,15 @@ export class ConnectionTCPTLSSecret extends ObfuscatedConnection {
             await tls.handshake();
             this.socket = tls as unknown as PromisedNetSockets;
         }
-        this._obfuscation = new (this.ObfuscatedIO as any)(
+        const obf = new (this.ObfuscatedIO as any)(
             this,
             Buffer.from("efefefef", "hex")
         );
-        await this._obfuscation.initHeader();
-        this.socket.write(this._obfuscation.header);
+        await obf.initHeader();
+        if (!obf.header) {
+            throw new Error("Obfuscation header not initialized");
+        }
+        this._obfuscation = obf;
+        this.socket.write(obf.header);
     }
 }

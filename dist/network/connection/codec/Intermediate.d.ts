@@ -10,7 +10,7 @@ import { Connection, PacketCodec, PacketReader } from "../Connection";
 export declare class IntermediatePacketCodec extends PacketCodec {
     static tag: Buffer<ArrayBuffer>;
     static obfuscateTag: Buffer<ArrayBuffer>;
-    private tag;
+    tag: Buffer;
     obfuscateTag: Buffer;
     private _log?;
     constructor(props: any);
