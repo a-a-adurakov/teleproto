@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ObfuscatedConnection = exports.PacketCodec = exports.Connection = void 0;
 const extensions_1 = require("../../extensions");
+const errors_1 = require("../../errors");
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
  *
@@ -21,9 +22,9 @@ class Connection {
         this._log = loggers;
         this._proxy = proxy;
         this._connected = false;
+        this._codec = undefined;
         this._sendTask = undefined;
         this._recvTask = undefined;
-        this._codec = undefined;
         this._obfuscation = undefined; // TcpObfuscated and MTProxy
         this._sendArray = new extensions_1.AsyncQueue();
         this._recvArray = new extensions_1.AsyncQueue();
@@ -159,6 +160,18 @@ class PacketCodec {
     async readPacket(reader) {
         // override
         throw new Error("Not Implemented");
+    }
+    /**
+     * Check if a 4-byte buffer is a transport error (404, 429, 444, etc).
+     * Throws TransportError if so, otherwise returns false.
+     */
+    checkTransportError(header) {
+        if (header.length !== 4)
+            return false;
+        const code = -header.readInt32LE(0);
+        if (code > 0)
+            throw new errors_1.TransportError(code);
+        return false;
     }
 }
 exports.PacketCodec = PacketCodec;

@@ -497,7 +497,7 @@ export declare class TelegramClient extends TelegramBaseClient {
      * }
      * ```
      */
-    iterMessages(entity: EntityLike | undefined, iterParams?: Partial<messageMethods.IterMessagesParams>): messageMethods._IDsIter | messageMethods._MessagesIter;
+    iterMessages(entity: EntityLike | undefined, iterParams?: Partial<messageMethods.IterMessagesParams>): messageMethods._MessagesIter | messageMethods._IDsIter;
     /**
      * Same as iterMessages() but returns a TotalList instead.<br/>
      * if the `limit` is not set, it will be 1 by default unless both `minId` **and** `maxId` are set. in which case the entire  range will be returned.<br/>

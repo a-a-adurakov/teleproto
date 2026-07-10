@@ -63,5 +63,10 @@ declare class PacketCodec {
     constructor(connection: any);
     encodePacket(data: Buffer): void;
     readPacket(reader: PromisedNetSockets): Promise<Buffer>;
+    /**
+     * Check if a 4-byte buffer is a transport error (404, 429, 444, etc).
+     * Throws TransportError if so, otherwise returns false.
+     */
+    protected checkTransportError(header: Buffer): boolean;
 }
 export { Connection, PacketCodec, ObfuscatedConnection };

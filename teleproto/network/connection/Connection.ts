@@ -6,6 +6,7 @@ import { AsyncQueue } from "../../extensions";
 import { AbridgedPacketCodec } from "./codec/Abridged";
 import { FullPacketCodec } from "./codec/Full";
 import { ProxyInterface } from "./TCPMTProxy";
+import { TransportError } from "../../errors";
 
 interface ConnectionInterfaceParams {
     ip: string;
@@ -60,9 +61,9 @@ class Connection {
         this._log = loggers;
         this._proxy = proxy;
         this._connected = false;
+        this._codec = undefined;
         this._sendTask = undefined;
         this._recvTask = undefined;
-        this._codec = undefined;
         this._obfuscation = undefined; // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue();
         this._recvArray = new AsyncQueue();
@@ -220,6 +221,17 @@ class PacketCodec {
     ): Promise<Buffer> {
         // override
         throw new Error("Not Implemented");
+    }
+
+    /**
+     * Check if a 4-byte buffer is a transport error (404, 429, 444, etc).
+     * Throws TransportError if so, otherwise returns false.
+     */
+    protected checkTransportError(header: Buffer): boolean {
+        if (header.length !== 4) return false;
+        const code = -header.readInt32LE(0);
+        if (code > 0) throw new TransportError(code);
+        return false;
     }
 }
 

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TimedOutError = exports.ServerError = exports.FloodError = exports.AuthKeyError = exports.NotFoundError = exports.ForbiddenError = exports.UnauthorizedError = exports.BadRequestError = exports.InvalidDCError = exports.RPCError = void 0;
+exports.TransportError = exports.TimedOutError = exports.ServerError = exports.FloodError = exports.AuthKeyError = exports.NotFoundError = exports.ForbiddenError = exports.UnauthorizedError = exports.BadRequestError = exports.InvalidDCError = exports.RPCError = void 0;
 const ts_custom_error_1 = require("ts-custom-error");
 class RPCError extends ts_custom_error_1.CustomError {
     constructor(message, request, code) {
@@ -132,3 +132,20 @@ class TimedOutError extends RPCError {
     }
 }
 exports.TimedOutError = TimedOutError;
+/**
+ * Transport-level error sent by the server as a signed 4-byte int32.
+ * Codes: 404 (auth key not found), 429 (transport flood), 444 (invalid DC).
+ */
+class TransportError extends RPCError {
+    constructor(code) {
+        const messages = {
+            404: "AUTH_KEY_NOT_FOUND",
+            429: "TRANSPORT_FLOOD",
+            444: "INVALID_DC",
+        };
+        const msg = messages[code] || `TRANSPORT_ERROR_${code}`;
+        super(msg, null, code);
+        this.errorMessage = msg;
+    }
+}
+exports.TransportError = TransportError;

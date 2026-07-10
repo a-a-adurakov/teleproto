@@ -36,8 +36,9 @@ class DDPacketCodec extends Connection_1.PacketCodec {
         var _a;
         const header = await reader.read(4);
         const length = header.readUInt32LE(0);
-        // Quick ACK — bit 31 set
+        // Quick ACK — bit 31 set (but first check if it's a transport error)
         if (length & 0x80000000) {
+            this.checkTransportError(header);
             (_a = this._log) === null || _a === void 0 ? void 0 : _a.debug(`Quick ACK received: 0x${(length & 0x7FFFFFFF).toString(16).padStart(8, '0')}`);
             return this.readPacket(reader);
         }

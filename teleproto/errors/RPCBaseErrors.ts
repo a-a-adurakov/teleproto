@@ -114,3 +114,20 @@ export class TimedOutError extends RPCError {
     code = 503; // Only witnessed as -503
     errorMessage = "Timeout";
 }
+
+/**
+ * Transport-level error sent by the server as a signed 4-byte int32.
+ * Codes: 404 (auth key not found), 429 (transport flood), 444 (invalid DC).
+ */
+export class TransportError extends RPCError {
+    constructor(code: number) {
+        const messages: Record<number, string> = {
+            404: "AUTH_KEY_NOT_FOUND",
+            429: "TRANSPORT_FLOOD",
+            444: "INVALID_DC",
+        };
+        const msg = messages[code] || `TRANSPORT_ERROR_${code}`;
+        super(msg, null as any, code);
+        this.errorMessage = msg;
+    }
+}

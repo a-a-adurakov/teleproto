@@ -538,8 +538,8 @@ class MTProtoSender {
             catch (e) {
                 // `RPCError` errors except for 'AUTH_KEY_UNREGISTERED' should be handled by the client
                 if (e instanceof errors_1.RPCError) {
-                    const rpcMessage = e.errorMessage;
-                    if (rpcMessage === "AUTH_KEY_UNREGISTERED" || rpcMessage === "SESSION_REVOKED") {
+                    if (e.errorMessage === "SESSION_REVOKED"
+                        || e.errorMessage === "AUTH_KEY_UNREGISTERED") {
                         // 'AUTH_KEY_UNREGISTERED' for the main sender is thrown when unauthorized and should be ignored
                         this._handleBadAuthKey(true);
                     }

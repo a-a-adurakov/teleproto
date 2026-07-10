@@ -40,6 +40,8 @@ class AbridgedPacketCodec extends Connection_1.PacketCodec {
         if (firstByte & 0x80) {
             const remaining = await reader.read(3);
             const token = Buffer.concat([readData, remaining]);
+            // Check for transport error before treating as quick ACK
+            this.checkTransportError(token);
             (_a = this._log) === null || _a === void 0 ? void 0 : _a.debug(`Quick ACK token received (4 bytes): ` +
                 `hex=${token.toString('hex')}, ` +
                 `first_byte=0x${firstByte.toString(16).padStart(2, '0')} (bit7=${(firstByte >> 7) & 1}), ` +
