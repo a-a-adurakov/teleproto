@@ -368,14 +368,14 @@ class FakeTlsSocket {
  * and the client will select the correct connection class automatically.
  */
 class TCPMTProxy extends Connection_1.ObfuscatedConnection {
-    constructor({ dcId, loggers, proxy, socket, }) {
+    constructor({ dcId, proxy, socket, loggers }) {
         super({
             ip: proxy.ip,
             port: proxy.port,
             dcId,
-            loggers,
-            socket,
             proxy,
+            socket,
+            loggers
         });
         if (!("MTProxy" in proxy)) {
             throw new Error("This connection only supports MTProxies");

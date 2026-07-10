@@ -119,7 +119,7 @@ declare class MTProxyIO {
 export declare class TCPMTProxy extends ObfuscatedConnection {
     _secret: Buffer;
     _fakeTlsDomain?: string;
-    constructor({ dcId, loggers, proxy, socket, }: TCPMTProxyInterfaceParams);
+    constructor({ dcId, proxy, socket, loggers }: TCPMTProxyInterfaceParams);
     protected _createObfuscation(): MTProxyIO;
     _initConn(): Promise<void>;
 }

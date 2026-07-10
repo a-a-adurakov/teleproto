@@ -439,7 +439,7 @@ class MTProtoSender {
         this._sendLoopHandle = undefined;
     }
     async _recvLoop() {
-        var _a;
+        var _a, _b, _c;
         // Create a new abort controller for this loop
         this._abortController = new AbortController();
         const signal = this._abortController.signal;
@@ -508,6 +508,20 @@ class MTProtoSender {
                         return;
                     }
                     this._handleBadAuthKey();
+                    this.reconnect();
+                    this._recvLoopHandle = undefined;
+                    return;
+                }
+                else if (e instanceof errors_1.InvalidDCError) {
+                    // Transport 404 → 444: try another DC from config
+                    const otherDc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => dc.id !== this._dcId && !dc.cdn && !dc.tcpoOnly);
+                    if (otherDc) {
+                        this._log.warn(`Transport 444 for dc ${this._dcId}, trying dc ${otherDc.id}`);
+                        throw new errors_1.PhoneMigrateError({
+                            request: undefined,
+                            capture: otherDc.id,
+                        });
+                    }
                     this.reconnect();
                     this._recvLoopHandle = undefined;
                     return;
