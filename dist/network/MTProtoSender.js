@@ -506,7 +506,6 @@ class MTProtoSender {
                             for (const state of this._pendingState.values()) {
                                 state.reject("Maximum reconnection retries reached for broken auth key");
                             }
-                            this.userDisconnected = true;
                             this._recvLoopHandle = undefined;
                             return;
                         }

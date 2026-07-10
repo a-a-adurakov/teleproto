@@ -686,11 +686,12 @@ export class MTProtoSender {
 
             try {
                 message = await this._state.decryptMessageData(body);
-                if (this._client) this._client._lastReceivedAt = Date.now();
+                if (this._client) 
+                    this._client._lastReceivedAt = Date.now();
                 this._log.debug(
                     `[RECV] Decrypted msgId=${message.msgId} type=${message.obj?.className || "unknown"} bodyLen=${body.length}`
                 );
-            } catch (e) {
+            } catch (e: any) {
                 this._log.debug(
                     `Error while receiving items from the network ${e}`
                 );
@@ -715,7 +716,6 @@ export class MTProtoSender {
                             for (const state of this._pendingState.values()) {
                                 state.reject("Maximum reconnection retries reached for broken auth key");
                             }
-                            this.userDisconnected = true;
                             this._recvLoopHandle = undefined;
                             return;
                         }
@@ -735,7 +735,7 @@ export class MTProtoSender {
                 } else {
                     this._log.error("Unhandled error while receiving data", e);
                     if (this._client._errorHandler) {
-                        await this._client._errorHandler(e as Error);
+                        await this._client._errorHandler(e);
                     }
                     this.reconnect();
                     this._recvLoopHandle = undefined;
@@ -747,8 +747,8 @@ export class MTProtoSender {
             } catch (e) {
                 // `RPCError` errors except for 'AUTH_KEY_UNREGISTERED' should be handled by the client
                 if (e instanceof RPCError) {
-                    const rpcMessage = e.errorMessage;
-                    if (rpcMessage === "AUTH_KEY_UNREGISTERED" || rpcMessage === "SESSION_REVOKED") {
+                    if (e.errorMessage === "SESSION_REVOKED"
+                        || e.errorMessage === "AUTH_KEY_UNREGISTERED") {
                         // 'AUTH_KEY_UNREGISTERED' for the main sender is thrown when unauthorized and should be ignored
                         this._handleBadAuthKey(true);
                     }

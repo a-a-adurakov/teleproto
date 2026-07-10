@@ -59,11 +59,11 @@ function parseDCSecret(secret) {
  */
 class DCSecretObfuscatedIO {
     constructor(connection, dcTag) {
+        this.dcTag = dcTag;
+        this.dcId = connection._dcId;
+        this.secret = connection._secret;
         this.stream = connection.socket;
         this.packetCodec = connection.PacketCodecClass;
-        this.secret = connection._secret;
-        this.dcId = connection._dcId;
-        this.dcTag = dcTag;
     }
     async initHeader() {
         const header = pickObfuscationHeader();
