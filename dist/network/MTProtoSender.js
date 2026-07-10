@@ -498,6 +498,21 @@ class MTProtoSender {
                     this._log.warn(`Security error while unpacking a received message: ${e}`);
                     continue;
                 }
+                else if (e instanceof errors_1.FloodWaitError) {
+                    // Transport flood — sleep and retry
+                    this._log.warn(`Transport flood for dc ${this._dcId}, waiting ${e.seconds}s`);
+                    await (0, Helpers_1.sleep)(e.seconds * 1000);
+                    this.reconnect();
+                    this._recvLoopHandle = undefined;
+                    return;
+                }
+                else if (e instanceof errors_1.InvalidDCError) {
+                    // Invalid DC — reconnect to correct DC
+                    this._log.warn(`Invalid DC ${this._dcId} (transport error ${e.code})`);
+                    this.reconnect();
+                    this._recvLoopHandle = undefined;
+                    return;
+                }
                 else if (e instanceof errors_1.InvalidBufferError) {
                     // 404 means that the server has "forgotten" our auth key and we need to create a new one.
                     if (e.code === 404) {

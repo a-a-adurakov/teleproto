@@ -6,7 +6,7 @@ import { AsyncQueue } from "../../extensions";
 import { AbridgedPacketCodec } from "./codec/Abridged";
 import { FullPacketCodec } from "./codec/Full";
 import { ProxyInterface } from "./TCPMTProxy";
-import { RPCError } from "../../errors";
+import { FloodWaitError, InvalidDCError } from "../../errors";
 
 interface ConnectionInterfaceParams {
     ip: string;
@@ -248,13 +248,16 @@ class PacketCodec {
     protected checkTransportError(header: Buffer): void {
         if (header.length !== 4) return;
         const code = -header.readInt32LE(0);
+        if (code === 429) {
+            throw new FloodWaitError({ request: null as any, capture: 30 });
+        }
+        if (code === 444) {
+            throw new InvalidDCError("INVALID_DC", null as any, code);
+        }
+        // 404 and others propagate as RPCError for recv loop handling
         if (code > 0) {
-            const messages: Record<number, string> = {
-                404: "AUTH_KEY_NOT_FOUND",
-                429: "TRANSPORT_FLOOD",
-                444: "INVALID_DC",
-            };
-            throw new RPCError(messages[code] || `TRANSPORT_ERROR_${code}`, null as any, code);
+            const { RPCError } = require("../../errors");
+            throw new RPCError(`TRANSPORT_ERROR_${code}`, null as any, code);
         }
     }
 }
