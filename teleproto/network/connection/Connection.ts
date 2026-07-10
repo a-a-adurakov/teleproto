@@ -6,7 +6,7 @@ import { AsyncQueue } from "../../extensions";
 import { AbridgedPacketCodec } from "./codec/Abridged";
 import { FullPacketCodec } from "./codec/Full";
 import { ProxyInterface } from "./TCPMTProxy";
-import { TransportError } from "../../errors";
+import { RPCError } from "../../errors";
 
 interface ConnectionInterfaceParams {
     ip: string;
@@ -245,11 +245,17 @@ class PacketCodec {
      * Check if a 4-byte buffer is a transport error (404, 429, 444, etc).
      * Throws TransportError if so, otherwise returns false.
      */
-    protected checkTransportError(header: Buffer): boolean {
-        if (header.length !== 4) return false;
+    protected checkTransportError(header: Buffer): void {
+        if (header.length !== 4) return;
         const code = -header.readInt32LE(0);
-        if (code > 0) throw new TransportError(code);
-        return false;
+        if (code > 0) {
+            const messages: Record<number, string> = {
+                404: "AUTH_KEY_NOT_FOUND",
+                429: "TRANSPORT_FLOOD",
+                444: "INVALID_DC",
+            };
+            throw new RPCError(messages[code] || `TRANSPORT_ERROR_${code}`, null as any, code);
+        }
     }
 }
 

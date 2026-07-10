@@ -85,6 +85,6 @@ declare class PacketCodec {
      * Check if a 4-byte buffer is a transport error (404, 429, 444, etc).
      * Throws TransportError if so, otherwise returns false.
      */
-    protected checkTransportError(header: Buffer): boolean;
+    protected checkTransportError(header: Buffer): void;
 }
 export { Connection, PacketCodec, ObfuscatedConnection };

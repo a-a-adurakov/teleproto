@@ -167,11 +167,16 @@ class PacketCodec {
      */
     checkTransportError(header) {
         if (header.length !== 4)
-            return false;
+            return;
         const code = -header.readInt32LE(0);
-        if (code > 0)
-            throw new errors_1.TransportError(code);
-        return false;
+        if (code > 0) {
+            const messages = {
+                404: "AUTH_KEY_NOT_FOUND",
+                429: "TRANSPORT_FLOOD",
+                444: "INVALID_DC",
+            };
+            throw new errors_1.RPCError(messages[code] || `TRANSPORT_ERROR_${code}`, null, code);
+        }
     }
 }
 exports.PacketCodec = PacketCodec;

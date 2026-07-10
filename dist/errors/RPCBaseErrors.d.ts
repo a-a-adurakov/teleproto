@@ -82,10 +82,3 @@ export declare class TimedOutError extends RPCError {
     code: number;
     errorMessage: string;
 }
-/**
- * Transport-level error sent by the server as a signed 4-byte int32.
- * Codes: 404 (auth key not found), 429 (transport flood), 444 (invalid DC).
- */
-export declare class TransportError extends RPCError {
-    constructor(code: number);
-}
