@@ -502,6 +502,7 @@ class MTProtoSender {
                     const error = new errors_1.RPCError('TRANSPORT ERROR');
                     if (e.code === 404) {
                         if (this._currentRetries <= this._reconnectRetries) {
+                            this._log.error("Permkey access", e);
                             this._handleBadAuthKey();
                             this.reconnect();
                             this._recvLoopHandle = undefined;
@@ -521,6 +522,7 @@ class MTProtoSender {
                     for (const state of this._pendingState.values()) {
                         state.reject(error);
                     }
+                    this._log.error("Transport error while receiving data", error);
                     this.userDisconnected = true;
                     this._recvLoopHandle = undefined;
                     if (e.code === 429) {

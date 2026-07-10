@@ -716,11 +716,13 @@ export class MTProtoSender {
                     const error = new RPCError('TRANSPORT ERROR');
                     if (e.code === 404) {
                         if (this._currentRetries <= this._reconnectRetries) {
+                            this._log.error("Permkey access", e);
                             this._handleBadAuthKey();
                             this.reconnect();
                             this._recvLoopHandle = undefined;
                             return;
-                        }error.errorMessage = `[404] Max retries ${this._dcId}`;
+                        }
+                        error.errorMessage = `[404] Max retries ${this._dcId}`;
                         
                     }
                     if (e.code === 429) {
@@ -735,6 +737,7 @@ export class MTProtoSender {
                             for (const state of this._pendingState.values()) {
                                 state.reject(error);
                             }
+                            this._log.error("Transport error while receiving data", error);
                             this.userDisconnected = true;
                             this._recvLoopHandle  = undefined;
                             if (e.code === 429) {
