@@ -211,6 +211,7 @@ class ConnectionTCPTLSSecret extends Connection_1.ObfuscatedConnection {
         if (this._fakeTlsDomain) {
             const tls = new FakeTlsSocket(this.socket, this._secret, this._fakeTlsDomain);
             await tls.handshake();
+            // @ts-ignore
             this.socket = tls;
         }
         await super._initConn();

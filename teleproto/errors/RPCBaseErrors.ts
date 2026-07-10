@@ -8,7 +8,7 @@ export class RPCError extends CustomError {
     public code: number | undefined;
     public errorMessage: string;
 
-    constructor(message: string, request: Api.AnyRequest, code?: number) {
+    constructor(message: string, request?: Api.AnyRequest, code?: number) {
         super(
             "{0}: {1}{2}"
                 .replace("{0}", code?.toString() || "")
@@ -19,7 +19,7 @@ export class RPCError extends CustomError {
         this.errorMessage = message;
     }
 
-    static _fmtRequest(request: Api.AnyRequest) {
+    static _fmtRequest(request?: Api.AnyRequest) {
         // TODO fix this
         if (request) {
             return ` (caused by ${request.className})`;
@@ -33,7 +33,7 @@ export class RPCError extends CustomError {
  * The request must be repeated, but directed to a different data center.
  */
 export class InvalidDCError extends RPCError {
-    constructor(message: string, request: Api.AnyRequest, code?: number) {
+    constructor(message: string, request?: Api.AnyRequest, code?: number) {
         super(message, request, code);
         this.code = code || 303;
         this.errorMessage = message || "ERROR_SEE_OTHER";

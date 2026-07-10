@@ -6,7 +6,8 @@ import { AsyncQueue } from "../../extensions";
 import { AbridgedPacketCodec } from "./codec/Abridged";
 import { FullPacketCodec } from "./codec/Full";
 import { ProxyInterface } from "./TCPMTProxy";
-import { FloodWaitError, InvalidDCError, InvalidBufferError, RPCError } from "../../errors";
+import { Api } from "../../tl";
+import { FloodWaitError, InvalidDCError, InvalidBufferError, RPCError, NotFoundError } from "../../errors";
 
 interface ConnectionInterfaceParams {
     ip: string;
@@ -250,16 +251,19 @@ class PacketCodec {
             return;
         const code = -header.readInt32LE(0);
         if (code === 404) {
-            throw new InvalidBufferError(header);
+            throw new NotFoundError(`TRANSPORT ${code}`, undefined, code);
         }
         if (code === 429) {
-            throw new FloodWaitError({ request: null as any, capture: 30 });
+            throw new FloodWaitError({
+                capture: 30,
+                request: undefined
+            });
         }
         if (code === 444) {
-            throw new InvalidDCError("INVALID_DC", null as any, code);
+            throw new InvalidDCError("TRANSPORT ${code}", undefined, code);
         }
         if (code > 0) {
-            throw new RPCError(`TRANSPORT_ERROR_${code}`, null as any, code);
+            throw new RPCError      (`TRANSPORT ERROR ${code}`, undefined, code);
         }
     }
 }
