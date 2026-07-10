@@ -498,42 +498,17 @@ class MTProtoSender {
                     this._log.warn(`Security error while unpacking a received message: ${e}`);
                     continue;
                 }
-                else if (e instanceof errors_1.FloodWaitError) {
-                    // Transport flood — sleep and retry
-                    this._log.warn(`Transport flood for dc ${this._dcId}, waiting ${e.seconds}s`);
-                    await (0, Helpers_1.sleep)(e.seconds * 1000);
-                    this.reconnect();
-                    this._recvLoopHandle = undefined;
-                    return;
-                }
-                else if (e instanceof errors_1.InvalidDCError) {
-                    // Invalid DC — reconnect to correct DC
-                    this._log.warn(`Invalid DC ${this._dcId} (transport error ${e.code})`);
-                    this.reconnect();
-                    this._recvLoopHandle = undefined;
-                    return;
-                }
-                else if (e instanceof errors_1.InvalidBufferError) {
-                    // 404 means that the server has "forgotten" our auth key and we need to create a new one.
-                    if (e.code === 404) {
-                        if (this._currentRetries > this._reconnectRetries) {
-                            this._log.error(`[404] Max retries reached for dc ${this._dcId}, giving up`);
-                            for (const state of this._pendingState.values()) {
-                                state.reject("Maximum reconnection retries reached for broken auth key");
-                            }
-                            this._recvLoopHandle = undefined;
-                            return;
+                else if (e instanceof errors_1.NotFoundError) {
+                    if (this._currentRetries > this._reconnectRetries) {
+                        this._log.error(`[404] Max retries reached for dc ${this._dcId}, giving up`);
+                        for (const state of this._pendingState.values()) {
+                            state.reject("Maximum reconnection retries reached for broken auth key");
                         }
-                        this._handleBadAuthKey();
-                        this.reconnect();
+                        this._recvLoopHandle = undefined;
+                        return;
                     }
-                    else {
-                        // this happens sometimes when telegram is having some internal issues.
-                        // reconnecting should be enough usually
-                        // since the data we sent and received is probably wrong now.
-                        this._log.warn(`Invalid buffer ${e.code} for dc ${this._dcId}`);
-                        this.reconnect();
-                    }
+                    this._handleBadAuthKey();
+                    this.reconnect();
                     this._recvLoopHandle = undefined;
                     return;
                 }

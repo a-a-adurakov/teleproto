@@ -6,14 +6,14 @@ import { CustomError } from "ts-custom-error";
 export declare class RPCError extends CustomError {
     code: number | undefined;
     errorMessage: string;
-    constructor(message: string, request: Api.AnyRequest, code?: number);
-    static _fmtRequest(request: Api.AnyRequest): string;
+    constructor(message: string, request?: Api.AnyRequest, code?: number);
+    static _fmtRequest(request?: Api.AnyRequest): string;
 }
 /**
  * The request must be repeated, but directed to a different data center.
  */
 export declare class InvalidDCError extends RPCError {
-    constructor(message: string, request: Api.AnyRequest, code?: number);
+    constructor(message: string, request?: Api.AnyRequest, code?: number);
 }
 /**
  * The query contains errors. In the event that a request was created
