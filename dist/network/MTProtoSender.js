@@ -514,7 +514,7 @@ class MTProtoSender {
                         error.errorMessage = `[429] Transport flood `;
                     }
                     if (e.code === 444) {
-                        error.errorMessage = `[444] - alternative not found dc ${this._dcId}`;
+                        error.errorMessage = `[444] Transport dc ${this._dcId}`;
                     }
                     else {
                         error.errorMessage = `[Unknown] transport error ${e.code} for dc ${this._dcId}`;
@@ -523,7 +523,6 @@ class MTProtoSender {
                         state.reject(error);
                     }
                     this._log.error("Transport error while receiving data", error);
-                    this.userDisconnected = true;
                     this._recvLoopHandle = undefined;
                     if (e.code === 429) {
                         this._pendingState.clear();
@@ -544,6 +543,7 @@ class MTProtoSender {
                             });
                         }
                     }
+                    this.userDisconnected = true;
                     return;
                 }
                 else {

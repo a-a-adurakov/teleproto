@@ -723,13 +723,12 @@ export class MTProtoSender {
                             return;
                         }
                         error.errorMessage = `[404] Max retries ${this._dcId}`;
-                        
                     }
                     if (e.code === 429) {
                         error.errorMessage = `[429] Transport flood `;
                     }
                     if (e.code === 444) {
-                        error.errorMessage = `[444] - alternative not found dc ${this._dcId}`;
+                        error.errorMessage = `[444] Transport dc ${this._dcId}`;
                     }
                     else {
                         error.errorMessage = `[Unknown] transport error ${e.code} for dc ${this._dcId}`
@@ -738,8 +737,7 @@ export class MTProtoSender {
                                 state.reject(error);
                             }
                             this._log.error("Transport error while receiving data", error);
-                            this.userDisconnected = true;
-                            this._recvLoopHandle  = undefined;
+                            this._recvLoopHandle = undefined;
                             if (e.code === 429) {
                                 this._pendingState.clear();
                                 throw new FloodWaitError({ 
@@ -762,7 +760,8 @@ export class MTProtoSender {
                                     });
                                 }
                             }
-                    return;
+                            this.userDisconnected = true;
+                            return;
                 } else {
                     this._log.error("Unhandled error while receiving data", e);
                     if (this._client._errorHandler) {
