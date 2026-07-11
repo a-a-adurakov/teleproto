@@ -11,6 +11,7 @@ exports._dispatchUpdate = _dispatchUpdate;
 exports._updateLoop = _updateLoop;
 const tl_1 = require("../tl");
 const network_1 = require("../network");
+const events_1 = require("../events");
 const Helpers_1 = require("../Helpers");
 const PING_INTERVAL = 9000; // 9 sec
 const PING_TIMEOUT = 10000; // 10 sec
@@ -20,6 +21,8 @@ const PING_DISCONNECT_DELAY = 60000; // 1 min
 const PING_INTERVAL_TO_WAKE_UP = 5000;
 const PING_WAKE_UP_TIMEOUT = 3000;
 const PING_WAKE_UP_WARNING_TIMEOUT = 1000;
+// Config refresh: every 1 hour (like Nicegram DC_UPDATE_TIME)
+const CONFIG_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
 /**
  * If raised inside a registered handler, stops further dispatching for that
  * update — analogue of StopIteration but for events.
@@ -140,7 +143,13 @@ async function _updateLoop(client) {
     var _a, _b;
     client.updateManager.start();
     await client.updateManager.ensureState();
+    // Handle server-side config updates
+    client.addEventHandler(async () => {
+        client._log.info("Received updateConfig from server, refreshing...");
+        await client._refreshConfig();
+    }, new events_1.Raw({ types: [tl_1.Api.UpdateConfig] }));
     let lastPongAt;
+    let lastConfigRefresh = Date.now();
     while (!client._destroyed) {
         await (0, Helpers_1.sleep)(PING_INTERVAL, true);
         if (client._destroyed)
@@ -151,6 +160,11 @@ async function _updateLoop(client) {
         }
         if (client.disconnected)
             break;
+        // Periodic config refresh (every 1 hour)
+        if (Date.now() - lastConfigRefresh > CONFIG_REFRESH_INTERVAL_MS) {
+            await client._refreshConfig();
+            lastConfigRefresh = Date.now();
+        }
         try {
             const ping = () => client._sender.send(new tl_1.Api.PingDelayDisconnect({
                 pingId: (0, Helpers_1.returnBigInt)((0, Helpers_1.getRandomInt)(Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)),

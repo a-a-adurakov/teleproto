@@ -2,7 +2,7 @@ import type { EventBuilder } from "../events/common";
 import { Api } from "../tl";
 import type { TelegramClient } from "./TelegramClient";
 import { UpdateConnectionState } from "../network";
-import type { Raw } from "../events";
+import { Raw } from "../events";
 import { getRandomInt, returnBigInt, sleep } from "../Helpers";
 import Timeout = NodeJS.Timeout;
 
@@ -14,6 +14,9 @@ const PING_DISCONNECT_DELAY = 60000; // 1 min
 const PING_INTERVAL_TO_WAKE_UP = 5000;
 const PING_WAKE_UP_TIMEOUT = 3000;
 const PING_WAKE_UP_WARNING_TIMEOUT = 1000;
+
+// Config refresh: every 1 hour (like Nicegram DC_UPDATE_TIME)
+const CONFIG_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
 
 /**
  * If raised inside a registered handler, stops further dispatching for that
@@ -153,7 +156,17 @@ export async function _updateLoop(client: TelegramClient) {
     client.updateManager.start();
     await client.updateManager.ensureState();
 
+    // Handle server-side config updates
+    client.addEventHandler(
+        async () => {
+            client._log.info("Received updateConfig from server, refreshing...");
+            await client._refreshConfig();
+        },
+        new Raw({ types: [Api.UpdateConfig] }),
+    );
+
     let lastPongAt: number | undefined;
+    let lastConfigRefresh = Date.now();
     while (!client._destroyed) {
         await sleep(PING_INTERVAL, true);
         if (client._destroyed) break;
@@ -162,6 +175,12 @@ export async function _updateLoop(client: TelegramClient) {
             continue;
         }
         if (client.disconnected) break;
+
+        // Periodic config refresh (every 1 hour)
+        if (Date.now() - lastConfigRefresh > CONFIG_REFRESH_INTERVAL_MS) {
+            await client._refreshConfig();
+            lastConfigRefresh = Date.now();
+        }
 
         try {
             const ping = () =>

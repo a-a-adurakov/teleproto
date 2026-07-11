@@ -1289,12 +1289,7 @@ class TelegramClient extends telegramBaseClient_1.TelegramBaseClient {
     async getDC(dcId, downloadDC = false) {
         this._log.debug(`Getting DC ${dcId}`);
         if (!this._config) {
-            try {
-                this._config = await this.api.help.getConfig();
-            }
-            catch (e) {
-                this._log.warn(`help.GetConfig failed, falling back to built-in DC seeds: ${e}`);
-            }
+            await this._refreshConfig();
         }
         const lookup = this._lookupDcOption(dcId, downloadDC);
         if (lookup) {
@@ -1307,6 +1302,19 @@ class TelegramClient extends telegramBaseClient_1.TelegramBaseClient {
             return { id: dcId, ipAddress, port: 443, secret: undefined };
         }
         throw new Error(`Cannot find the DC with the ID of ${dcId}`);
+    }
+    /**
+     * Refresh config from Telegram server.
+     * Called on updateConfig update and periodically (every 1 hour).
+     */
+    async _refreshConfig() {
+        try {
+            this._config = await this.api.help.getConfig();
+            this._log.info("Config refreshed from server");
+        }
+        catch (e) {
+            this._log.warn(`Failed to refresh config: ${e}`);
+        }
     }
     _lookupDcOption(dcId, mediaCluster) {
         if (!this._config)
