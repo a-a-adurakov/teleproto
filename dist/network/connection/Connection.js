@@ -164,22 +164,15 @@ class PacketCodec {
     }
     /**
      * Check if a 4-byte buffer is a transport error (404, 429, 444).
-     * Only throws for KNOWN transport error codes, not for negative quick ACK tokens.
-     * Returns the error code if transport error, 0 otherwise.
+     * Throws InvalidBufferError if so, otherwise returns.
      */
     checkTransportError(header) {
         if (header.length !== 4)
-            return 0;
+            return;
         const val = header.readInt32LE(0);
         if (val >= 0)
-            return 0; // positive = not a transport error
-        const code = -val;
-        // Only known transport error codes per MTProto spec
-        if (code === 404 || code === 429 || code === 444) {
-            throw new errors_1.InvalidBufferError(header);
-        }
-        // Unknown negative value — likely a quick ACK token, not a transport error
-        return 0;
+            return; // positive = not a transport error
+        throw new errors_1.InvalidBufferError(header);
     }
 }
 exports.PacketCodec = PacketCodec;

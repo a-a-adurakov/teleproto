@@ -43,18 +43,27 @@ export class DDPacketCodec extends PacketCodec {
         const header = await reader.read(4);
         const length = header.readUInt32LE(0);
 
-        // Quick ACK — bit 31 set (but first check if it's a transport error)
+        // Client quick ACK — bit 31 set
         if (length & 0x80000000) {
             this.checkTransportError(header);
             this._log?.debug(`Quick ACK received: 0x${(length & 0x7FFFFFFF).toString(16).padStart(8, '0')}`);
             return this.readPacket(reader);
         }
 
-        // Read payload + padding, return only the payload
-        const body = await reader.read(length);
-        // DD payload length is not aligned to 4, so we just return the full body
-        // The MTProto layer will handle the actual message parsing
-        return body;
+        // Server quick ACK — small packet (8-16 bytes) with 0xFFFFFFFF header
+        if (length >= 8 && length <= 16) {
+            const body = await reader.read(length);
+            // Check for 0xFFFFFFFF marker (server quick ACK)
+            if (body.length >= 4 && body.readUInt32LE(0) === 0xFFFFFFFF) {
+                this._log?.debug(`Server quick ACK received: ${body.toString('hex')}`);
+                return this.readPacket(reader);
+            }
+            // Not a quick ACK — return the body we already read
+            return body;
+        }
+
+        // Regular packet
+        return reader.read(length);
     }
 }
 
