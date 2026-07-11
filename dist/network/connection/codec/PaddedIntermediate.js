@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConnectionTCPDD = exports.DDPacketCodec = void 0;
 const Connection_1 = require("../Connection");
 const Helpers_1 = require("../../../Helpers");
+const errors_1 = require("../../../errors");
 /**
  * Padded Intermediate transport codec (ProtocolTypeDD).
  *
@@ -31,6 +32,26 @@ class DDPacketCodec extends Connection_1.PacketCodec {
         const len = Buffer.alloc(4);
         len.writeUInt32LE(totalLen, 0);
         return Buffer.concat([len, data, padding]);
+    }
+    /**
+     * DD-specific transport error check.
+     * Only throws for KNOWN error codes (404, 429, 444).
+     * Unknown negative values are treated as quick ACK tokens.
+     */
+    checkTransportError(header) {
+        var _a;
+        if (header.length !== 4)
+            return;
+        const val = header.readInt32LE(0);
+        if (val >= 0)
+            return; // positive = not a transport error
+        const code = -val;
+        // Only known transport error codes per MTProto spec
+        if (code === 404 || code === 429 || code === 444) {
+            throw new errors_1.InvalidBufferError(header);
+        }
+        // Unknown negative value — likely a quick ACK token, not a transport error
+        (_a = this._log) === null || _a === void 0 ? void 0 : _a.debug(`Unknown negative value in DD header: ${val} (not a known transport error)`);
     }
     async readPacket(reader) {
         var _a, _b;

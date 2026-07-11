@@ -1,5 +1,6 @@
 import { Connection, PacketCodec, PacketReader } from "../Connection";
 import { generateRandomBytes } from "../../../Helpers";
+import { InvalidBufferError } from "../../../errors";
 import type { Logger } from "../../../extensions";
 
 /**
@@ -37,6 +38,25 @@ export class DDPacketCodec extends PacketCodec {
         const len = Buffer.alloc(4);
         len.writeUInt32LE(totalLen, 0);
         return Buffer.concat([len, data, padding]);
+    }
+
+    /**
+     * DD-specific transport error check.
+     * Only throws for KNOWN error codes (404, 429, 444).
+     * Unknown negative values are treated as quick ACK tokens.
+     */
+    protected checkTransportError(header: Buffer): void {
+        if (header.length !== 4) return;
+        const val = header.readInt32LE(0);
+        if (val >= 0) return; // positive = not a transport error
+
+        const code = -val;
+        // Only known transport error codes per MTProto spec
+        if (code === 404 || code === 429 || code === 444) {
+            throw new InvalidBufferError(header);
+        }
+        // Unknown negative value — likely a quick ACK token, not a transport error
+        this._log?.debug(`Unknown negative value in DD header: ${val} (not a known transport error)`);
     }
 
     async readPacket(reader: PacketReader): Promise<Buffer> {
