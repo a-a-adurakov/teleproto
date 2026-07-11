@@ -208,7 +208,7 @@ export async function _updateLoop(client: TelegramClient) {
             if (client._destroyed) break;
 
             if (Date.now() - client._lastReceivedAt < PING_INTERVAL + PING_TIMEOUT) {
-                client._log.debug(`Ping timed out but transfer is active, ignoring`);
+                // client._log.debug(`Ping timed out but transfer is active, ignoring`);
                 continue;
             }
 

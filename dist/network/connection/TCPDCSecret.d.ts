@@ -1,5 +1,6 @@
 import { ObfuscatedConnection } from "./Connection";
 import { AbridgedPacketCodec } from "./codec/Abridged";
+import { DDPacketCodec } from "./codec/PaddedIntermediate";
 /**
  * Parses DC secret bytes and determines the protocol type.
  *
@@ -33,7 +34,7 @@ declare class DCSecretObfuscatedIO {
  * Connection for DCs with `\xdd` secret prefix (Padded Intermediate + obfuscation).
  */
 export declare class ConnectionTCPDDSecret extends ObfuscatedConnection {
-    PacketCodecClass: typeof AbridgedPacketCodec;
+    PacketCodecClass: typeof DDPacketCodec;
     _secret: Buffer;
     _dcId: number;
     constructor(params: any);

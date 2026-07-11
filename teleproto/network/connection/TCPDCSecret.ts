@@ -1,5 +1,6 @@
 import { ObfuscatedConnection } from "./Connection";
 import { AbridgedPacketCodec } from "./codec/Abridged";
+import { DDPacketCodec } from "./codec/PaddedIntermediate";
 import { generateRandomBytes, sha256 } from "../../Helpers";
 import { PromisedNetSockets } from "../../extensions";
 import { CTR } from "../../crypto/CTR";
@@ -70,7 +71,7 @@ export function parseDCSecret(secret: Buffer): {
 class DCSecretObfuscatedIO {
     header!: Buffer;
     private readonly stream: ByteStream;
-    private readonly packetCodec: AbridgedPacketCodec;
+    private readonly packetCodec: AbridgedPacketCodec | DDPacketCodec;
     private readonly secret: Buffer;
     private readonly dcId: number;
     private readonly dcTag: Buffer;
@@ -79,7 +80,7 @@ class DCSecretObfuscatedIO {
 
     constructor(connection: any, dcTag: Buffer) {
         this.stream = connection.socket;
-        this.packetCodec = connection.PacketCodecClass as unknown as AbridgedPacketCodec;
+        this.packetCodec = connection.PacketCodecClass as unknown as AbridgedPacketCodec | DDPacketCodec;
         this.secret = connection._secret;
         this.dcId = connection._dcId;
         this.dcTag = dcTag;
@@ -226,7 +227,7 @@ class FakeTlsSocket implements ByteStream {
  * Connection for DCs with `\xdd` secret prefix (Padded Intermediate + obfuscation).
  */
 export class ConnectionTCPDDSecret extends ObfuscatedConnection {
-    PacketCodecClass = AbridgedPacketCodec;
+    PacketCodecClass = DDPacketCodec;
     _secret: Buffer;
     _dcId: number;
 

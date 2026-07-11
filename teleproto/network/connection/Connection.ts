@@ -89,6 +89,7 @@ class Connection {
     async _connect() {
         this._log.debug("Connecting");
         this._codec = new this.PacketCodecClass!(this);
+        this._log.info(`Codec: ${this._codec.constructor.name}`);
         await this.socket.connect(this._port, this._ip);
         this._log.debug("Finished connecting");
         await this._initConn();

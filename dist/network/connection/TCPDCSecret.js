@@ -4,6 +4,7 @@ exports.ConnectionTCPTLSSecret = exports.ConnectionTCPDDSecret = void 0;
 exports.parseDCSecret = parseDCSecret;
 const Connection_1 = require("./Connection");
 const Abridged_1 = require("./codec/Abridged");
+const PaddedIntermediate_1 = require("./codec/PaddedIntermediate");
 const Helpers_1 = require("../../Helpers");
 const CTR_1 = require("../../crypto/CTR");
 const SECRET_LEN = 16;
@@ -182,7 +183,7 @@ class FakeTlsSocket {
 class ConnectionTCPDDSecret extends Connection_1.ObfuscatedConnection {
     constructor(params) {
         super(params);
-        this.PacketCodecClass = Abridged_1.AbridgedPacketCodec;
+        this.PacketCodecClass = PaddedIntermediate_1.DDPacketCodec;
         const parsed = parseDCSecret(params.dcSecret);
         this._secret = parsed.key;
         this._dcId = params.dcId;
