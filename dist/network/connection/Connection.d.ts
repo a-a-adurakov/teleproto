@@ -82,8 +82,8 @@ declare class PacketCodec {
     encodePacket(data: Buffer): Buffer;
     readPacket(reader: PacketReader): Promise<Buffer>;
     /**
-     * Check if a 4-byte buffer is a transport error (404, 429, 444, etc).
-     * Throws TransportError if so, otherwise returns false.
+     * Check if a 4-byte buffer is a transport error (404, 429, 444).
+     * Throws InvalidBufferError if so, otherwise returns.
      */
     protected checkTransportError(header: Buffer): void;
 }

@@ -18,13 +18,13 @@ export class DDPacketCodec extends PacketCodec {
     tag: Buffer;
     obfuscateTag: Buffer;
     private _log?: Logger;
-
+    
     constructor(props: any) {
         super(props);
         this.tag = DDPacketCodec.tag;
         this.obfuscateTag = DDPacketCodec.obfuscateTag;
         this._log = props._log;
-        this._log?.debug("Padded Intermediate codec initialized (protocol: DD, tag: 0xdddddddd)");
+        this._log?.info("Padded Intermediate codec initialized (protocol: DD, tag: 0xdddddddd)");
     }
 
     encodePacket(data: Buffer) {
@@ -40,25 +40,6 @@ export class DDPacketCodec extends PacketCodec {
         return Buffer.concat([len, data, padding]);
     }
 
-    /**
-     * DD-specific transport error check.
-     * Only throws for KNOWN error codes (404, 429, 444).
-     * Unknown negative values are treated as quick ACK tokens.
-     */
-    protected checkTransportError(header: Buffer): void {
-        if (header.length !== 4) return;
-        const val = header.readInt32LE(0);
-        if (val >= 0) return; // positive = not a transport error
-
-        const code = -val;
-        // Only known transport error codes per MTProto spec
-        if (code === 404 || code === 429 || code === 444) {
-            throw new InvalidBufferError(header);
-        }
-        // Unknown negative value — likely a quick ACK token, not a transport error
-        this._log?.debug(`Unknown negative value in DD header: ${val} (not a known transport error)`);
-    }
-
     async readPacket(reader: PacketReader): Promise<Buffer> {
         const header = await reader.read(4);
         const length = header.readUInt32LE(0);
@@ -66,7 +47,6 @@ export class DDPacketCodec extends PacketCodec {
         // Client quick ACK — bit 31 set
         if (length & 0x80000000) {
             this.checkTransportError(header);
-            this._log?.debug(`Quick ACK received: 0x${(length & 0x7FFFFFFF).toString(16).padStart(8, '0')}`);
             return this.readPacket(reader);
         }
 
@@ -74,7 +54,8 @@ export class DDPacketCodec extends PacketCodec {
         if (length >= 8 && length <= 16) {
             const body = await reader.read(length);
             // Check for 0xFFFFFFFF marker (server quick ACK)
-            if (body.length >= 4 && body.readUInt32LE(0) === 0xFFFFFFFF) {
+            if (body.length >= 4 
+                && body.readUInt32LE(0) === 0xFFFFFFFF) {
                 this._log?.debug(`Server quick ACK received: ${body.toString('hex')}`);
                 return this.readPacket(reader);
             }
@@ -84,6 +65,29 @@ export class DDPacketCodec extends PacketCodec {
 
         // Regular packet
         return reader.read(length);
+    }
+
+    /**
+     * DD-specific transport error check.
+     * Only throws for KNOWN error codes (404, 429, 444).
+     * Unknown negative values are treated as quick ACK tokens.
+     */
+    protected checkTransportError(header: Buffer): void {
+        if (header.length !== 4) 
+            return;
+        const val = header.readInt32LE(0);
+        if (val >= 0) 
+            return; // positive = not a transport error
+
+        const code = -val;
+        // Only known transport error codes per MTProto spec
+        if (code === 404 
+            || code === 429 
+            || code === 444) {
+            throw new InvalidBufferError(header);
+        }
+        // Unknown negative value — likely a quick ACK token, not a transport error
+        this._log?.debug(`Unknown negative value in DD header: ${val} (not a known transport error)`);
     }
 }
 

@@ -248,9 +248,12 @@ class PacketCodec {
      * Throws InvalidBufferError if so, otherwise returns.
      */
     protected checkTransportError(header: Buffer): void {
-        if (header.length !== 4) return;
+        if (header.length !== 4) 
+            return;
         const val = header.readInt32LE(0);
-        if (val >= 0) return; // positive = not a transport error
+        // positive = not a transport error
+        if (val >= 0) 
+            return; 
         throw new InvalidBufferError(header);
     }
 }

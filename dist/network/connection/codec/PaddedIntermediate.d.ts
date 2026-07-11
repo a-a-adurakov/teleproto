@@ -17,6 +17,12 @@ export declare class DDPacketCodec extends PacketCodec {
     constructor(props: any);
     encodePacket(data: Buffer): Buffer<ArrayBuffer>;
     readPacket(reader: PacketReader): Promise<Buffer>;
+    /**
+     * DD-specific transport error check.
+     * Only throws for KNOWN error codes (404, 429, 444).
+     * Unknown negative values are treated as quick ACK tokens.
+     */
+    protected checkTransportError(header: Buffer): void;
 }
 /**
  * Padded Intermediate transport connection (ProtocolTypeDD).

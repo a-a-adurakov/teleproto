@@ -170,8 +170,9 @@ class PacketCodec {
         if (header.length !== 4)
             return;
         const val = header.readInt32LE(0);
+        // positive = not a transport error
         if (val >= 0)
-            return; // positive = not a transport error
+            return;
         throw new errors_1.InvalidBufferError(header);
     }
 }

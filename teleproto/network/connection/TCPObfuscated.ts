@@ -46,14 +46,16 @@ class ObfuscatedIO {
         }
         random = random.toJSON().data;
 
-        const randomReversed = Buffer.from(random.slice(8, 56)).reverse();
+        const randomRc = Buffer.from(random.slice(8, 56)).reverse();
         // Encryption has "continuous buffer" enabled
-        const encryptKey = Buffer.from(random.slice(8, 40));
+        const encryptK = Buffer.from(random.slice(8, 40));
         const encryptIv = Buffer.from(random.slice(40, 56));
-        const decryptKey = Buffer.from(randomReversed.slice(0, 32));
-        const decryptIv = Buffer.from(randomReversed.slice(32, 48));
-        const encryptor = new CTR(encryptKey, encryptIv);
-        const decryptor = new CTR(decryptKey, decryptIv);
+        
+        const decryptK = Buffer.from(randomRc.slice(0, 32));
+        const decryptIv = Buffer.from(randomRc.slice(32, 48));
+        
+        const encryptor = new CTR(encryptK, encryptIv);
+        const decryptor = new CTR(decryptK, decryptIv);
 
         random = Buffer.concat([
             Buffer.from(random.slice(0, 56)),
