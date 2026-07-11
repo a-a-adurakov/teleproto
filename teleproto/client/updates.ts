@@ -1,8 +1,9 @@
 import type { EventBuilder } from "../events/common";
 import { Api } from "../tl";
+import { Raw } from "../events";
 import type { TelegramClient } from "./TelegramClient";
 import { UpdateConnectionState } from "../network";
-import { Raw } from "../events";
+
 import { getRandomInt, returnBigInt, sleep } from "../Helpers";
 import Timeout = NodeJS.Timeout;
 
@@ -208,9 +209,14 @@ export async function _updateLoop(client: TelegramClient) {
             } else {
                 let wakeUpWarningTimeout: Timeout | undefined =
                     setTimeout(() => {
-                        _handleUpdate(client, UpdateConnectionState.disconnected);
+                        _handleUpdate(
+                            client, 
+                            UpdateConnectionState.disconnected
+                        );
                         wakeUpWarningTimeout = undefined;
-                    }, PING_WAKE_UP_WARNING_TIMEOUT);
+                    }, 
+                    PING_WAKE_UP_WARNING_TIMEOUT
+                );
 
                 await timeout(ping, PING_WAKE_UP_TIMEOUT);
 
