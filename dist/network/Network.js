@@ -129,10 +129,14 @@ class Network {
                 if (!((0, core_types_1.isDownloadDcId)(otherShifted) || (0, core_types_1.isUploadDcId)(otherShifted)))
                     continue;
                 this._slots.delete(otherShifted);
-                otherSlot.markDead("auth-broken").catch(() => { });
+                otherSlot.markDead("auth-broken").catch((err) => {
+                    this._client._log.error(`Failed to mark sibling slot ${otherShifted} as dead`, err);
+                });
             }
         }
-        slot.markDead("manual").catch(() => { });
+        slot.markDead("manual").catch((err) => {
+            this._client._log.error(`Failed to mark slot ${shiftedDcId} as dead`, err);
+        });
     }
     async purge() {
         const dying = [...this._slots.values()];
