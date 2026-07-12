@@ -732,42 +732,30 @@ export class MTProtoSender {
                 } else if (e instanceof InvalidBufferError) {
                     const error = new RPCError('TRANSPORT ERROR');
                     if (e.code === 404) {
-                        if (this._currentRetries <= this._reconnectRetries) {
-                            this._log.error("Permkey access", e);
-                            this._handleBadAuthKey();
-                            // Don't reconnect here — MediaScheduler will retry with new slot
-                            this._recvLoopHandle = undefined;
-                            return;
-                        }
-                        error.errorMessage = `[404] Max retries ${this._dcId}`;
+                        error.errorMessage = `[404] Auth key broken for dc ${this._dcId}`;
+                    } else if (e.code === 429) {
+                        error.errorMessage = `[429] Transport flood`;
+                    } else if (e.code === 444) {
+                        error.errorMessage = `[444] Invalid DC ${this._dcId}`;
+                    } else {
+                        error.errorMessage = `[${e.code}] Transport error for dc ${this._dcId}`;
                     }
+
+                    this._log.error("Transport error while receiving data", error);
+
+                    // For 429: flood wait, don't kill slot
                     if (e.code === 429) {
-                        error.errorMessage = `[429] Transport flood `;
+                        this._pendingState.clear();
+                        throw new FloodWaitError({ 
+                            request: undefined,
+                            capture: 30 
+                        });
                     }
-                    if (e.code === 444) {
-                        error.errorMessage = `[444] Transport dc ${this._dcId}`;
-                    }
-                    else {
-                        error.errorMessage = `[Unknown] transport error ${e.code} for dc ${this._dcId}`
-                    }
-                            for (const state of this._pendingState.values()) {
-                                state.reject(error);
-                            }
-                            this._log.error("Transport error while receiving data", error);
-                            this._recvLoopHandle = undefined;
-                            if (e.code === 429) {
-                                this._pendingState.clear();
-                                throw new FloodWaitError({ 
-                                    request: undefined,
-                                    capture: 30 
-                                });
-                            }
-                            // For 444 and unknown errors, mark slot as dead so MediaScheduler creates new one
-                            this.userDisconnected = true;
-                            if (this._onConnectionBreak) {
-                                this._onConnectionBreak(this._dcId);
-                            }
-                            return;
+
+                    // For 404/444/unknown: reject pending + mark slot dead
+                    this._handleBadAuthKey();
+                    this._recvLoopHandle = undefined;
+                    return;
                 } else {
                     this._log.error("Unhandled error while receiving data", e);
                     if (this._client._errorHandler) {
