@@ -521,6 +521,12 @@ class MTProtoSender {
                     continue;
                 }
                 else if (e instanceof errors_1.InvalidBufferError) {
+                    // 404: auth key broken → kill slot + siblings
+                    if (e.code === 404) {
+                        this._handleBadAuthKey();
+                        this._recvLoopHandle = undefined;
+                        return;
+                    }
                     // 429: flood wait, slot stays alive
                     if (e.code === 429) {
                         e = new errors_1.FloodWaitError({
@@ -528,18 +534,15 @@ class MTProtoSender {
                             capture: 30
                         });
                     }
-                    // 404: auth key broken → kill slot + siblings
-                    if (e.code === 404) {
-                        this._handleBadAuthKey();
-                        this._recvLoopHandle = undefined;
-                        return;
+                    else {
+                        e = new errors_1.RPCError('TIMEOUT', undefined, e.code);
+                    }
+                    for (const state of this._pendingState.values()) {
+                        state.reject(e);
                     }
                 }
                 if (this._client._errorHandler) {
                     await this._client._errorHandler(e);
-                }
-                for (const state of this._pendingState.values()) {
-                    state.reject(e);
                 }
                 this._pendingState.clear();
                 this.reconnect();

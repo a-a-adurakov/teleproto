@@ -728,6 +728,12 @@ export class MTProtoSender {
                     this._log.warn(`Security error while unpacking a received message: ${e}`);
                     continue;
                 } else if (e instanceof InvalidBufferError) {
+                    // 404: auth key broken → kill slot + siblings
+                    if (e.code === 404) {
+                        this._handleBadAuthKey();
+                        this._recvLoopHandle = undefined;
+                        return;
+                    }
                     // 429: flood wait, slot stays alive
                     if (e.code === 429) {
                         e = new FloodWaitError({
@@ -735,20 +741,17 @@ export class MTProtoSender {
                             capture: 30
                         });
                     }
-                    // 404: auth key broken → kill slot + siblings
-                    if (e.code === 404) {
-                        this._handleBadAuthKey();
-                        this._recvLoopHandle = undefined;
-                        return;
-                    }
-                    
-                }
-                    if (this._client._errorHandler) {
-                        await this._client._errorHandler(e);
+                    else {
+                        e = new RPCError('TIMEOUT', undefined, e.code);
                     }
                     for (const state of this._pendingState.values()) {
                         state.reject(e);
                     }
+                }
+                    if (this._client._errorHandler) {
+                        await this._client._errorHandler(e);
+                    }
+                    
                         this._pendingState.clear();
                         this.reconnect();
                         this._recvLoopHandle = undefined;
