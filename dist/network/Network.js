@@ -129,7 +129,7 @@ class Network {
                 if (!((0, core_types_1.isDownloadDcId)(otherShifted) || (0, core_types_1.isUploadDcId)(otherShifted)))
                     continue;
                 this._slots.delete(otherShifted);
-                otherSlot.markDead("media-temp-key-reset").catch(() => { });
+                otherSlot.markDead("auth-broken").catch(() => { });
             }
         }
         slot.markDead("manual").catch(() => { });

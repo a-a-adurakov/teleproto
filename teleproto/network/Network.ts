@@ -193,7 +193,7 @@ export class Network {
                 if (!(isDownloadDcId(otherShifted) || isUploadDcId(otherShifted))) 
                     continue;
                 this._slots.delete(otherShifted);
-                otherSlot.markDead("media-temp-key-reset").catch(() => {});
+                otherSlot.markDead("auth-broken").catch(() => {});
             }
         }
 
