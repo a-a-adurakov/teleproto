@@ -114,7 +114,6 @@ export class MTProtoSender {
     private _sendLoopHandle: any;
     private _recvLoopHandle: any;
     readonly authKey: AuthKey;
-    private _triedDcIds = new Set<number>();
     private readonly _state: MTProtoState;
     private _sendQueue: MessagePacker;
     _pendingState: PendingState;
@@ -464,7 +463,6 @@ export class MTProtoSender {
         this._userConnected = true;
         this._disconnected = false;
         this.isReconnecting = false;
-        this._triedDcIds.clear(); // Reset tried DCs on successful connection
 
         if (!this._sendLoopHandle) {
             this._log.debug("Starting send loop");
@@ -765,25 +763,10 @@ export class MTProtoSender {
                                 });
                             }
                             if (e.code === 444) {
-                                // Track which DCs we've already tried to avoid infinite migration loop
-                                this._triedDcIds.add(this._dcId);
-                                const dc = this._client._config?.dcOptions?.find(
-                                    (dc) => 
-                                        !dc.cdn 
-                                        && !dc.tcpoOnly
-                                        && dc.id !== this._dcId
-                                        && !this._triedDcIds.has(dc.id)
-                                );
-                                if (dc) {
-                                    this._pendingState.clear();
-                                    throw new FileMigrateError({ 
-                                        request: undefined, 
-                                        capture: dc.id 
-                                    });
-                                }
-                                // All DCs exhausted
-                                this._log.error(`All DCs exhausted after trying: ${[...this._triedDcIds].join(', ')}`);
-                                this._triedDcIds.clear();
+                                // Just reconnect to the same DC (like Nicegram)
+                                this._log.warn(`Transport error 444 on DC ${this._dcId}, reconnecting...`);
+                                this.userDisconnected = true;
+                                return;
                             }
                             this.userDisconnected = true;
                             return;

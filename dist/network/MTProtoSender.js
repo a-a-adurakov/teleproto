@@ -40,7 +40,6 @@ class MTProtoSender {
      * @param opts
      */
     constructor(authKey, opts) {
-        this._triedDcIds = new Set();
         this._needsInitConnection = true;
         const args = Object.assign(Object.assign({}, MTProtoSender.DEFAULT_OPTIONS), opts);
         this._finishedConnecting = false;
@@ -307,7 +306,6 @@ class MTProtoSender {
         this._userConnected = true;
         this._disconnected = false;
         this.isReconnecting = false;
-        this._triedDcIds.clear(); // Reset tried DCs on successful connection
         if (!this._sendLoopHandle) {
             this._log.debug("Starting send loop");
             this._sendLoopHandle = this._sendLoop();
@@ -459,7 +457,7 @@ class MTProtoSender {
         this._sendLoopHandle = undefined;
     }
     async _recvLoop() {
-        var _a, _b, _c;
+        var _a;
         // Create a new abort controller for this loop
         this._abortController = new AbortController();
         const signal = this._abortController.signal;
@@ -552,22 +550,10 @@ class MTProtoSender {
                         });
                     }
                     if (e.code === 444) {
-                        // Track which DCs we've already tried to avoid infinite migration loop
-                        this._triedDcIds.add(this._dcId);
-                        const dc = (_c = (_b = this._client._config) === null || _b === void 0 ? void 0 : _b.dcOptions) === null || _c === void 0 ? void 0 : _c.find((dc) => !dc.cdn
-                            && !dc.tcpoOnly
-                            && dc.id !== this._dcId
-                            && !this._triedDcIds.has(dc.id));
-                        if (dc) {
-                            this._pendingState.clear();
-                            throw new errors_1.FileMigrateError({
-                                request: undefined,
-                                capture: dc.id
-                            });
-                        }
-                        // All DCs exhausted
-                        this._log.error(`All DCs exhausted after trying: ${[...this._triedDcIds].join(', ')}`);
-                        this._triedDcIds.clear();
+                        // Just reconnect to the same DC (like Nicegram)
+                        this._log.warn(`Transport error 444 on DC ${this._dcId}, reconnecting...`);
+                        this.userDisconnected = true;
+                        return;
                     }
                     this.userDisconnected = true;
                     return;
