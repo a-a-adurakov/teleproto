@@ -457,7 +457,7 @@ class MTProtoSender {
         this._sendLoopHandle = undefined;
     }
     async _recvLoop() {
-        var _a;
+        var _a, _b;
         // Create a new abort controller for this loop
         this._abortController = new AbortController();
         const signal = this._abortController.signal;
@@ -504,26 +504,24 @@ class MTProtoSender {
                 this._log.debug(`[RECV] Decrypted msgId=${message.msgId} type=${((_a = message.obj) === null || _a === void 0 ? void 0 : _a.className) || "unknown"} bodyLen=${body.length}`);
             }
             catch (e) {
-                this._log.debug(`Error while receiving items from the network ${e}`);
+                this._log.debug(`Error while receiving items from the network`, e);
                 if (e instanceof errors_1.TypeNotFoundError) {
                     // Received object which we don't know how to deserialize
-                    this._log.info(`Type ${e.invalidConstructorId} not found, remaining data ${e.remaining}`);
                     continue;
                 }
                 else if (e instanceof errors_1.SecurityError) {
-                    // A step while decoding had the incorrect data. This message
-                    // should not be considered safe and it should be ignored.
-                    this._log.warn(`Security error while unpacking a received message: ${e}`);
-                    continue;
-                }
-                else if (e instanceof errors_1.InvalidBufferError) {
-                    this._log.error(`Transport error while receiving data message: ${e}`);
-                    // 404: auth key broken → kill slot + siblings
-                    if (e.code === 404) {
+                    // Invalid auth key → terminal, kill slot like 404
+                    if ((_b = e.message) === null || _b === void 0 ? void 0 : _b.includes("invalid auth key")) {
+                        this._log.error(`Security error (invalid auth key) on dc ${this._dcId}, killing slot`);
                         this._handleBadAuthKey();
                         this._recvLoopHandle = undefined;
                         return;
                     }
+                    // Other security errors — ignore, likely corrupt single message
+                    this._log.warn(`Security error while unpacking a received message: ${e}`);
+                    continue;
+                }
+                else if (e instanceof errors_1.InvalidBufferError) {
                     // 429: flood wait, slot stays alive
                     if (e.code === 429) {
                         e = new errors_1.FloodWaitError({
@@ -531,9 +529,13 @@ class MTProtoSender {
                             capture: 30
                         });
                     }
+                    // 404: auth key broken → kill slot + siblings
+                    if (e.code === 404) {
+                        this._handleBadAuthKey();
+                        this._recvLoopHandle = undefined;
+                        return;
+                    }
                 }
-                // All other errors (444/unknown InvalidBufferError, etc): reject + reconnect
-                this._log.error(`Error while receiving data: ${e}`);
                 if (this._client._errorHandler) {
                     await this._client._errorHandler(e);
                 }
