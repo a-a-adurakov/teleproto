@@ -121,13 +121,6 @@ export class Network {
                 isMedia &&
                 dcenter.mediaTempUsable &&
                 !!dcenter.authKey.getKey();
-            this._client._log.debug(
-                `_gatedConnect: useTemp=${useTemp}, isMedia=${isMedia}, ` +
-                `mediaTempUsable=${dcenter.mediaTempUsable}, ` +
-                `hasPermKey=${!!dcenter.authKey.getKey()}, ` +
-                `mediaTempHasKey=${!!dcenter.mediaTempKey.getKey()}, ` +
-                `mediaTempFailed=${dcenter.mediaTempFailed}`
-            );
             if (
                 useTemp &&
                 dcenter.mediaTempExpiresAt > 0 &&
