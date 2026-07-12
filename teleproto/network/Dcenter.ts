@@ -6,7 +6,7 @@ export class Dcenter {
     readonly authKey: AuthKey;
     private _salt: bigInt.BigInteger;
 
-    readonly mediaTempKey = new AuthKey();
+    mediaTempKey = new AuthKey();
 
     mediaTempExpiresAt = 0;
 
@@ -25,7 +25,7 @@ export class Dcenter {
     }
 
     resetMediaTempKey(): void {
-        this.mediaTempKey.setKey(undefined).catch(() => {});
+        this.mediaTempKey = new AuthKey();
         this.mediaTempExpiresAt = 0;
         this.mediaBound = false;
     }

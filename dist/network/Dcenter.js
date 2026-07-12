@@ -20,7 +20,7 @@ class Dcenter {
         return !this.mediaTempFailed;
     }
     resetMediaTempKey() {
-        this.mediaTempKey.setKey(undefined).catch(() => { });
+        this.mediaTempKey = new AuthKey_1.AuthKey();
         this.mediaTempExpiresAt = 0;
         this.mediaBound = false;
     }
