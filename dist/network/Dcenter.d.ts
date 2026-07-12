@@ -3,10 +3,10 @@ import { AuthKey } from "../crypto/AuthKey";
 export declare class Dcenter {
     readonly dcId: number;
     readonly authKey: AuthKey;
+    readonly mediaTempKey: AuthKey;
     private _salt;
-    mediaTempKey: AuthKey;
-    mediaTempExpiresAt: number;
     mediaBound: boolean;
+    mediaTempExpiresAt: number;
     constructor(dcId: number, authKey?: AuthKey);
     get mediaTempUsable(): boolean;
     resetMediaTempKey(): void;

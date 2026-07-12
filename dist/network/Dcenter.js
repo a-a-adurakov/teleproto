@@ -9,19 +9,19 @@ const AuthKey_1 = require("../crypto/AuthKey");
 class Dcenter {
     constructor(dcId, authKey) {
         this.mediaTempKey = new AuthKey_1.AuthKey();
-        this.mediaTempExpiresAt = 0;
         this.mediaBound = false;
+        this.mediaTempExpiresAt = 0;
         this.dcId = dcId;
-        this.authKey = authKey !== null && authKey !== void 0 ? authKey : new AuthKey_1.AuthKey();
         this._salt = big_integer_1.default.zero;
+        this.authKey = authKey !== null && authKey !== void 0 ? authKey : new AuthKey_1.AuthKey();
     }
     get mediaTempUsable() {
         return true;
     }
     resetMediaTempKey() {
-        this.mediaTempKey = new AuthKey_1.AuthKey();
-        this.mediaTempExpiresAt = 0;
+        this.mediaTempKey.setKey(undefined);
         this.mediaBound = false;
+        this.mediaTempExpiresAt = 0;
     }
     get salt() {
         return this._salt;
@@ -41,7 +41,7 @@ class DcenterRegistry {
         let dc = this._dcs.get(dcId);
         if (!dc) {
             dc = new Dcenter(dcId, seedKey);
-            this._dcs.set(dcId, dc);
+            const result = this._dcs.set(dcId, dc);
         }
         return dc;
     }

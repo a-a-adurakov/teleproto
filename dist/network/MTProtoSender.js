@@ -277,8 +277,10 @@ class MTProtoSender {
             await connection.connect();
             this._log.debug("Connection success!");
         }
-        const authKeyHash = this.authKey.getKey() ? this.authKey.getKey().slice(0, 8).toString('hex') : 'none';
-        this._log.debug(`Auth key hash: ${authKeyHash}, authenticated: ${this._authenticated}`);
+        const authHash = this.authKey.getKey()
+            ?
+                this.authKey.getKey().slice(0, 8).toString('hex') : 'none';
+        this._log.debug(`Auth key hash: ${authHash}, authenticated: ${this._authenticated}`);
         if (!this.authKey.getKey()) {
             const plain = new MTProtoPlainSender_1.MTProtoPlainSender(connection, this._log);
             this._log.info("New auth_key attempt ...");

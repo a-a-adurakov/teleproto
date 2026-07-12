@@ -76,31 +76,41 @@ class Network {
                 await (0, Helpers_1.sleep)(wait);
         }
         try {
-            const isMedia = (0, core_types_1.isDownloadDcId)(shiftedDcId) || (0, core_types_1.isUploadDcId)(shiftedDcId);
-            if (isMedia &&
-                dcenter.mediaTempExpiresAt > 0 &&
-                dcenter.mediaTempExpiresAt <
+            // Синхронизируем permanent key из session если Dcenter создан до аутентификации
+            if (!dcenter.authKey.getKey()) {
+                const sessionKey = this._client.session.getAuthKey(dcId);
+                if (sessionKey === null || sessionKey === void 0 ? void 0 : sessionKey.getKey()) {
+                    await dcenter.authKey.setKey(sessionKey.getKey());
+                }
+            }
+            const isMedia = (0, core_types_1.isDownloadDcId)(shiftedDcId)
+                || (0, core_types_1.isUploadDcId)(shiftedDcId);
+            if (isMedia
+                && dcenter.mediaTempExpiresAt > 0
+                && dcenter.mediaTempExpiresAt <
                     Math.floor(Date.now() / 1000) + 60) {
                 dcenter.resetMediaTempKey();
             }
             const log = this._client._log;
             const sender = this._client._makeSender(dcId, () => this._onSenderBreak(shiftedDcId, slot), isMedia ? dcenter.mediaTempKey : dcenter.authKey, true, isMedia
-                ? {
-                    permAuthKey: dcenter.authKey,
-                    dcParam: -(dcId +
-                        (this._client._testServers ? 10000 : 0)),
-                    expiresIn: TempAuthKey_1.TEMP_KEY_EXPIRES_IN,
-                    isBound: () => dcenter.mediaBound,
-                    onBound: (expiresAt) => {
-                        dcenter.mediaBound = true;
-                        dcenter.mediaTempExpiresAt = expiresAt;
-                    },
-                    onFailed: (err) => {
-                        dcenter.resetMediaTempKey();
-                        log.info(`Temp-key binding failed for dc ${dcId}, will retry on next attempt (${err instanceof Error ? err.message : err})`);
-                    },
-                }
-                : undefined);
+                ?
+                    {
+                        permAuthKey: dcenter.authKey,
+                        dcParam: -(dcId +
+                            (this._client._testServers ? 10000 : 0)),
+                        expiresIn: TempAuthKey_1.TEMP_KEY_EXPIRES_IN,
+                        isBound: () => dcenter.mediaBound,
+                        onBound: (expiresAt) => {
+                            dcenter.mediaBound = true;
+                            dcenter.mediaTempExpiresAt = expiresAt;
+                        },
+                        onFailed: (err) => {
+                            dcenter.resetMediaTempKey();
+                            log.info(`Temp-key binding failed for dc ${dcId}, will retry on next attempt (${err instanceof Error ? err.message : err})`);
+                        },
+                    }
+                :
+                    undefined);
             return await this._client._connectSender(sender, dcId);
         }
         finally {

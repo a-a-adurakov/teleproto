@@ -59,7 +59,7 @@ export declare function getEntity(client: TelegramClient, entity: EntityLike | E
  */
 export declare function getInputEntity(client: TelegramClient, peer: EntityLike): Promise<Api.TypeInputPeer>;
 /** @hidden */
-export declare function _getEntityFromString(client: TelegramClient, string: string): Promise<Api.TypeInputPeer | Api.TypeUser | Api.TypeChat>;
+export declare function _getEntityFromString(client: TelegramClient, string: string): Promise<Api.TypeUser | Api.TypeInputPeer | Api.TypeChat>;
 /** @hidden */
 export declare function getPeerId(client: TelegramClient, peer: EntityLike, addMark?: boolean): Promise<string>;
 /** @hidden */

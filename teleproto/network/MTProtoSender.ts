@@ -428,8 +428,10 @@ export class MTProtoSender {
             this._log.debug("Connection success!");
         }
 
-        const authKeyHash = this.authKey.getKey() ? this.authKey.getKey()!.slice(0, 8).toString('hex') : 'none';
-        this._log.debug(`Auth key hash: ${authKeyHash}, authenticated: ${this._authenticated}`);
+        const authHash = this.authKey.getKey() 
+                        ? 
+                            this.authKey.getKey()!.slice(0, 8).toString('hex') : 'none';
+        this._log.debug(`Auth key hash: ${authHash}, authenticated: ${this._authenticated}`);
 
         if (!this.authKey.getKey()) {
             const plain = new MTProtoPlainSender(connection, this._log);
