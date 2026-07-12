@@ -10,7 +10,8 @@ export type SenderSlotState =
 export type SenderSlotDeathReason =
     | "auth-broken"
     | "manual"
-    | "pool-closed";
+    | "pool-closed"
+    | "media-temp-key-reset";
 
 export interface SenderSlotOptions {
     dcId: number;

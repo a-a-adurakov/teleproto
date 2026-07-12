@@ -86,7 +86,6 @@ export class Network {
             idleTimeoutMs: this._opts.idleTimeoutMs,
             log: this._client._log,
             connect: async () => {
-
                 const chain =
                     this._connectChains.get(dcId) ?? Promise.resolve();
                 const ours = chain.then(() =>
@@ -176,10 +175,27 @@ export class Network {
         }
 
         const dcId = bareDcId(shiftedDcId);
-        this._client.session.setAuthKey(undefined, dcId);
+        this._client.session.setAuthKey(
+            undefined, 
+            dcId
+        );
 
         const dcenter = this.dcenter(dcId);
-        dcenter.resetMediaTempKey();
+                dcenter.resetMediaTempKey();
+
+        // Kill sibling slots on the same DC — they share the invalidated temp key
+        if (isDownloadDcId(shiftedDcId) || isUploadDcId(shiftedDcId)) {
+            for (const [otherShifted, otherSlot] of [...this._slots]) {
+                if (otherSlot === slot) 
+                    continue;
+                if (bareDcId(otherShifted) !== dcId) 
+                    continue;
+                if (!(isDownloadDcId(otherShifted) || isUploadDcId(otherShifted))) 
+                    continue;
+                this._slots.delete(otherShifted);
+                otherSlot.markDead("media-temp-key-reset").catch(() => {});
+            }
+        }
 
         slot.markDead("manual").catch(() => {});
     }

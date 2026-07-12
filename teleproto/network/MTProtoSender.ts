@@ -817,6 +817,13 @@ export class MTProtoSender {
             `Broken authorization key for dc ${this._dcId}, resetting...`
         );
         this._authenticated = false;
+        this.userDisconnected = true;
+
+        // Reject all pending requests so _connectSender doesn't hang
+        for (const state of this._pendingState.values()) {
+            state.reject(new Error(`Auth key broken for dc ${this._dcId}`));
+        }
+        this._pendingState.clear();
 
         if (this._isMainSender && this._updateCallback) {
             this._updateCallback(

@@ -119,6 +119,19 @@ class Network {
         this._client.session.setAuthKey(undefined, dcId);
         const dcenter = this.dcenter(dcId);
         dcenter.resetMediaTempKey();
+        // Kill sibling slots on the same DC — they share the invalidated temp key
+        if ((0, core_types_1.isDownloadDcId)(shiftedDcId) || (0, core_types_1.isUploadDcId)(shiftedDcId)) {
+            for (const [otherShifted, otherSlot] of [...this._slots]) {
+                if (otherSlot === slot)
+                    continue;
+                if ((0, core_types_1.bareDcId)(otherShifted) !== dcId)
+                    continue;
+                if (!((0, core_types_1.isDownloadDcId)(otherShifted) || (0, core_types_1.isUploadDcId)(otherShifted)))
+                    continue;
+                this._slots.delete(otherShifted);
+                otherSlot.markDead("media-temp-key-reset").catch(() => { });
+            }
+        }
         slot.markDead("manual").catch(() => { });
     }
     async purge() {
