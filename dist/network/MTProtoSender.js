@@ -522,7 +522,7 @@ class MTProtoSender {
                         if (this._currentRetries <= this._reconnectRetries) {
                             this._log.error("Permkey access", e);
                             this._handleBadAuthKey();
-                            this.reconnect();
+                            // Don't reconnect here — MediaScheduler will retry with new slot
                             this._recvLoopHandle = undefined;
                             return;
                         }
