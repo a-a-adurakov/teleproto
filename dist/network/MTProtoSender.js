@@ -517,20 +517,7 @@ class MTProtoSender {
                     continue;
                 }
                 else if (e instanceof errors_1.InvalidBufferError) {
-                    const error = new errors_1.RPCError('TRANSPORT ERROR');
-                    if (e.code === 404) {
-                        error.errorMessage = `[404] Auth key broken for dc ${this._dcId}`;
-                    }
-                    else if (e.code === 429) {
-                        error.errorMessage = `[429] Transport flood`;
-                    }
-                    else if (e.code === 444) {
-                        error.errorMessage = `[444] Invalid DC ${this._dcId}`;
-                    }
-                    else {
-                        error.errorMessage = `[${e.code}] Transport error for dc ${this._dcId}`;
-                    }
-                    this._log.error("Transport error while receiving data", error);
+                    this._log.error(`Transport error while receiving data message: ${e}`);
                     // 404: auth key broken → kill slot + siblings
                     if (e.code === 404) {
                         this._handleBadAuthKey();
@@ -539,33 +526,24 @@ class MTProtoSender {
                     }
                     // 429: flood wait, slot stays alive
                     if (e.code === 429) {
-                        this._pendingState.clear();
-                        throw new errors_1.FloodWaitError({
+                        e = new errors_1.FloodWaitError({
                             request: undefined,
                             capture: 30
                         });
                     }
-                    // 444/unknown: reconnect, slot stays alive
-                    for (const state of this._pendingState.values()) {
-                        state.reject(error);
-                    }
-                    this.reconnect();
-                    this._recvLoopHandle = undefined;
-                    return;
                 }
-                else {
-                    this._log.error("Unhandled error while receiving data", e);
-                    if (this._client._errorHandler) {
-                        await this._client._errorHandler(e);
-                    }
-                    for (const state of this._pendingState.values()) {
-                        state.reject(e);
-                    }
-                    this._pendingState.clear();
-                    this.reconnect();
-                    this._recvLoopHandle = undefined;
-                    return;
+                // All other errors (444/unknown InvalidBufferError, etc): reject + reconnect
+                this._log.error(`Error while receiving data: ${e}`);
+                if (this._client._errorHandler) {
+                    await this._client._errorHandler(e);
                 }
+                for (const state of this._pendingState.values()) {
+                    state.reject(e);
+                }
+                this._pendingState.clear();
+                this.reconnect();
+                this._recvLoopHandle = undefined;
+                return;
             }
             try {
                 await this._processMessage(message);
