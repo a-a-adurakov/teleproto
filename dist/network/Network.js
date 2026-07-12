@@ -77,16 +77,14 @@ class Network {
         }
         try {
             const isMedia = (0, core_types_1.isDownloadDcId)(shiftedDcId) || (0, core_types_1.isUploadDcId)(shiftedDcId);
-            // Media ALWAYS uses temp key — permanent key only for binding
-            const useTemp = isMedia;
-            if (useTemp &&
+            if (isMedia &&
                 dcenter.mediaTempExpiresAt > 0 &&
                 dcenter.mediaTempExpiresAt <
                     Math.floor(Date.now() / 1000) + 60) {
                 dcenter.resetMediaTempKey();
             }
             const log = this._client._log;
-            const sender = this._client._makeSender(dcId, () => this._onSenderBreak(shiftedDcId, slot), useTemp ? dcenter.mediaTempKey : dcenter.authKey, true, useTemp
+            const sender = this._client._makeSender(dcId, () => this._onSenderBreak(shiftedDcId, slot), isMedia ? dcenter.mediaTempKey : dcenter.authKey, true, isMedia
                 ? {
                     permAuthKey: dcenter.authKey,
                     dcParam: -(dcId +
