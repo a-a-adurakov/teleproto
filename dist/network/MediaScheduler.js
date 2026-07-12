@@ -144,8 +144,6 @@ class MediaScheduler {
                     continue;
                 if ((err === null || err === void 0 ? void 0 : err.errorMessage) === "TIMEOUT")
                     continue;
-                if ((err === null || err === void 0 ? void 0 : err.errorMessage) === "AUTH_KEY_INVALID")
-                    continue;
                 throw err;
             }
         }
@@ -169,8 +167,6 @@ class MediaScheduler {
                 if (isFlood(err))
                     continue;
                 if ((err === null || err === void 0 ? void 0 : err.errorMessage) === "TIMEOUT")
-                    continue;
-                if ((err === null || err === void 0 ? void 0 : err.errorMessage) === "AUTH_KEY_INVALID")
                     continue;
                 throw err;
             }

@@ -213,7 +213,6 @@ export class MediaScheduler {
                 }
                 if (isFlood(err)) continue;
                 if (err?.errorMessage === "TIMEOUT") continue;
-                if (err?.errorMessage === "AUTH_KEY_INVALID") continue;
                 throw err;
             }
         }
@@ -244,7 +243,6 @@ export class MediaScheduler {
                 if (err instanceof SlotRemovedError) continue;
                 if (isFlood(err)) continue;
                 if (err?.errorMessage === "TIMEOUT") continue;
-                if (err?.errorMessage === "AUTH_KEY_INVALID") continue;
                 throw err;
             }
         }

@@ -797,7 +797,7 @@ export class MTProtoSender {
 
         // Reject all pending requests so _connectSender doesn't hang
         for (const state of this._pendingState.values()) {
-            const err = new RPCError(`auth key`, undefined, 404);
+            const err = new RPCError(`TIMEOUT`, undefined, 404);
             state.reject(err);
         }
         this._pendingState.clear();

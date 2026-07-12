@@ -584,7 +584,7 @@ class MTProtoSender {
         this.userDisconnected = true;
         // Reject all pending requests so _connectSender doesn't hang
         for (const state of this._pendingState.values()) {
-            const err = new errors_1.RPCError(`auth key`, undefined, 404);
+            const err = new errors_1.RPCError(`TIMEOUT`, undefined, 404);
             state.reject(err);
         }
         this._pendingState.clear();
