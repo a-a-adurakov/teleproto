@@ -4,7 +4,7 @@ export declare class Dcenter {
     readonly dcId: number;
     readonly authKey: AuthKey;
     private _salt;
-    readonly mediaTempKey: AuthKey;
+    mediaTempKey: AuthKey;
     mediaTempExpiresAt: number;
     mediaBound: boolean;
     mediaTempFailed: boolean;

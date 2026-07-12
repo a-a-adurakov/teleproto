@@ -5,13 +5,10 @@ export class Dcenter {
     readonly dcId: number;
     readonly authKey: AuthKey;
     private _salt: bigInt.BigInteger;
-
+    
     mediaTempKey = new AuthKey();
-
     mediaTempExpiresAt = 0;
-
     mediaBound = false;
-
     mediaTempFailed = false;
 
     constructor(dcId: number, authKey?: AuthKey) {
