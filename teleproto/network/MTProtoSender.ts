@@ -743,7 +743,14 @@ export class MTProtoSender {
 
                     this._log.error("Transport error while receiving data", error);
 
-                    // For 429: flood wait, don't kill slot
+                    // 404: auth key broken → kill slot + siblings
+                    if (e.code === 404) {
+                        this._handleBadAuthKey();
+                        this._recvLoopHandle = undefined;
+                        return;
+                    }
+
+                    // 429: flood wait, slot stays alive
                     if (e.code === 429) {
                         this._pendingState.clear();
                         throw new FloodWaitError({ 
@@ -752,8 +759,11 @@ export class MTProtoSender {
                         });
                     }
 
-                    // For 404/444/unknown: reject pending + mark slot dead
-                    this._handleBadAuthKey();
+                    // 444/unknown: reconnect, slot stays alive
+                    for (const state of this._pendingState.values()) {
+                        state.reject(error);
+                    }
+                    this.reconnect();
                     this._recvLoopHandle = undefined;
                     return;
                 } else {
