@@ -7,7 +7,6 @@ export declare class Dcenter {
     mediaTempKey: AuthKey;
     mediaTempExpiresAt: number;
     mediaBound: boolean;
-    mediaTempFailed: boolean;
     constructor(dcId: number, authKey?: AuthKey);
     get mediaTempUsable(): boolean;
     resetMediaTempKey(): void;
