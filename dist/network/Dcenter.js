@@ -11,13 +11,12 @@ class Dcenter {
         this.mediaTempKey = new AuthKey_1.AuthKey();
         this.mediaTempExpiresAt = 0;
         this.mediaBound = false;
-        this.mediaTempFailed = false;
         this.dcId = dcId;
         this.authKey = authKey !== null && authKey !== void 0 ? authKey : new AuthKey_1.AuthKey();
         this._salt = big_integer_1.default.zero;
     }
     get mediaTempUsable() {
-        return !this.mediaTempFailed;
+        return true;
     }
     resetMediaTempKey() {
         this.mediaTempKey = new AuthKey_1.AuthKey();

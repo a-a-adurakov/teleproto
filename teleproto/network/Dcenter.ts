@@ -9,7 +9,6 @@ export class Dcenter {
     mediaTempKey = new AuthKey();
     mediaTempExpiresAt = 0;
     mediaBound = false;
-    mediaTempFailed = false;
 
     constructor(dcId: number, authKey?: AuthKey) {
         this.dcId = dcId;
@@ -18,7 +17,7 @@ export class Dcenter {
     }
 
     get mediaTempUsable(): boolean {
-        return !this.mediaTempFailed;
+        return true;
     }
 
     resetMediaTempKey(): void {

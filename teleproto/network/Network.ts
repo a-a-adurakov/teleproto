@@ -117,10 +117,8 @@ export class Network {
 
             const isMedia =
                 isDownloadDcId(shiftedDcId) || isUploadDcId(shiftedDcId);
-            const useTemp =
-                isMedia &&
-                dcenter.mediaTempUsable &&
-                !!dcenter.authKey.getKey();
+            // Media ALWAYS uses temp key — permanent key only for binding
+            const useTemp = isMedia;
             if (
                 useTemp &&
                 dcenter.mediaTempExpiresAt > 0 &&
@@ -151,10 +149,9 @@ export class Network {
                               dcenter.mediaTempExpiresAt = expiresAt;
                           },
                           onFailed: (err: unknown) => {
-                              dcenter.mediaTempFailed = true;
                               dcenter.resetMediaTempKey();
                               log.info(
-                                  `Temp-key binding failed for dc ${dcId}, media sessions fall back to the permanent key (${
+                                  `Temp-key binding failed for dc ${dcId}, will retry on next attempt (${
                                       err instanceof Error ? err.message : err
                                   })`
                               );
