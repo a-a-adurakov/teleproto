@@ -549,12 +549,6 @@ class MTProtoSender {
                             capture: 30
                         });
                     }
-                    if (e.code === 444) {
-                        // Just reconnect to the same DC (like Nicegram)
-                        this._log.warn(`Transport error 444 on DC ${this._dcId}, reconnecting...`);
-                        this.userDisconnected = true;
-                        return;
-                    }
                     this.userDisconnected = true;
                     return;
                 }
