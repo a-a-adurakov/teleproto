@@ -114,13 +114,6 @@ export class Network {
             if (wait > 0) await sleep(wait);
         }
         try {
-            // Синхронизируем permanent key из session если Dcenter создан до аутентификации
-            if (!dcenter.authKey.getKey()) {
-                const sessionKey = this._client.session.getAuthKey(dcId);
-                if (sessionKey?.getKey()) {
-                    await dcenter.authKey.setKey(sessionKey.getKey()!);
-                }
-            }
 
             const isMedia = isDownloadDcId(shiftedDcId)
                             || isUploadDcId(shiftedDcId);

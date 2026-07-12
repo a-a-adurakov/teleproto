@@ -251,7 +251,7 @@ export interface MarkAsReadParams {
     clearMentions?: boolean;
 }
 /** @hidden */
-export declare function iterMessages(client: TelegramClient, entity: EntityLike | undefined, options: Partial<IterMessagesParams>): _MessagesIter | _IDsIter;
+export declare function iterMessages(client: TelegramClient, entity: EntityLike | undefined, options: Partial<IterMessagesParams>): _IDsIter | _MessagesIter;
 /** @hidden */
 export declare function getMessages(client: TelegramClient, entity: EntityLike | undefined, params: Partial<IterMessagesParams>): Promise<TotalList<Api.Message>>;
 /** @hidden */
@@ -273,11 +273,11 @@ export declare function deleteMessages(client: TelegramClient, entity: EntityLik
     revoke?: boolean | undefined;
 }): Promise<Api.messages.AffectedMessages[]>;
 /** @hidden */
-export declare function pinMessage(client: TelegramClient, entity: EntityLike, message?: MessageIDLike, pinMessageParams?: UpdatePinMessageParams): Promise<Api.messages.AffectedHistory | Api.Message | undefined>;
+export declare function pinMessage(client: TelegramClient, entity: EntityLike, message?: MessageIDLike, pinMessageParams?: UpdatePinMessageParams): Promise<Api.Message | Api.messages.AffectedHistory | undefined>;
 /** @hidden */
-export declare function unpinMessage(client: TelegramClient, entity: EntityLike, message?: MessageIDLike, unpinMessageParams?: UpdatePinMessageParams): Promise<Api.messages.AffectedHistory | Api.Message | undefined>;
+export declare function unpinMessage(client: TelegramClient, entity: EntityLike, message?: MessageIDLike, unpinMessageParams?: UpdatePinMessageParams): Promise<Api.Message | Api.messages.AffectedHistory | undefined>;
 /** @hidden */
-export declare function _pin(client: TelegramClient, entity: EntityLike, message: MessageIDLike | undefined, unpin: boolean, notify?: boolean, pmOneSide?: boolean): Promise<Api.messages.AffectedHistory | Api.Message | undefined>;
+export declare function _pin(client: TelegramClient, entity: EntityLike, message: MessageIDLike | undefined, unpin: boolean, notify?: boolean, pmOneSide?: boolean): Promise<Api.Message | Api.messages.AffectedHistory | undefined>;
 /** @hidden */
 export declare function markAsRead(client: TelegramClient, entity: EntityLike, message?: MessageIDLike | MessageIDLike[], markAsReadParams?: MarkAsReadParams): Promise<boolean>;
 /** @hidden */

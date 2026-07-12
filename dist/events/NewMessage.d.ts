@@ -76,7 +76,7 @@ export declare class NewMessage extends EventBuilder {
     constructor(newMessageParams?: NewMessageInterface);
     _resolve(client: TelegramClient): Promise<void>;
     build(update: Api.TypeUpdate | Api.TypeUpdates, callback: undefined, selfId: bigInt.BigInteger): NewMessageEvent | undefined;
-    filter(event: NewMessageEvent): EventCommon | import("./common").EventCommonSender | undefined;
+    filter(event: NewMessageEvent): import("./common").EventCommonSender | EventCommon | undefined;
     addAttributes(update: any): void;
 }
 export declare class NewMessageEvent extends EventCommon {

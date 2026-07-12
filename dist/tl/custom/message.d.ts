@@ -408,7 +408,7 @@ export declare class CustomMessage extends SenderGetter {
     react(reaction?: string | BigInteger | Api.TypeReaction | (string | BigInteger | Api.TypeReaction)[], big?: boolean): Promise<Api.TypeUpdates | undefined>;
     getReactions(limit?: number, reaction?: string): Promise<Api.messages.MessageReactionsList | undefined>;
     copy(entity: EntityLike): Promise<Api.TypeMessage | Map<number, Api.Message> | (Api.Message | undefined)[] | undefined>;
-    click({ i, j, text, filter, data, sharePhone, shareGeo, password, }: ButtonClickParam): Promise<string | Api.TypeUpdates | Api.messages.BotCallbackAnswer | Api.Message | null | undefined>;
+    click({ i, j, text, filter, data, sharePhone, shareGeo, password, }: ButtonClickParam): Promise<string | Api.Message | Api.TypeUpdates | Api.messages.BotCallbackAnswer | null | undefined>;
     /**
      * Helper methods to set the buttons given the input sender and chat.
      */

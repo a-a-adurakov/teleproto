@@ -25,5 +25,5 @@ export declare class Raw extends EventBuilder {
     constructor(params: RawInterface);
     resolve(client: TelegramClient): Promise<void>;
     build(update: Api.TypeUpdate): Api.TypeUpdate;
-    filter(event: EventCommon): EventCommon | import("./common").EventCommonSender | undefined;
+    filter(event: EventCommon): import("./common").EventCommonSender | EventCommon | undefined;
 }

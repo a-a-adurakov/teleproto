@@ -26,7 +26,7 @@ import { HTMLParser } from "../extensions/html";
 import { MarkdownParser } from "../extensions/markdown";
 import { MarkdownV2Parser } from "../extensions/markdownv2";
 import type { EventBuilder } from "../events/common";
-import { MTProtoSender } from "../network";
+import { MTProtoSender, Dcenter } from "../network";
 
 import { LAYER } from "../tl/runtime/registry";
 import { DownloadMediaInterface } from "./downloads";
@@ -1644,10 +1644,7 @@ export class TelegramClient extends TelegramBaseClient {
                 securityChecks: this._securityChecks,
                 autoReconnectCallback: this._handleReconnect.bind(this),
                 reconnectRetries: this._reconnectRetries,
-                dcenter: this._dcenters.get(
-                    this.session.dcId || 4,
-                    this.session.getAuthKey()
-                ),
+                dcenter: new Dcenter(this.session.dcId || 4, this.session.getAuthKey()),
             });
         }
 

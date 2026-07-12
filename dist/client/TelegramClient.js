@@ -1227,7 +1227,7 @@ class TelegramClient extends telegramBaseClient_1.TelegramBaseClient {
                 securityChecks: this._securityChecks,
                 autoReconnectCallback: this._handleReconnect.bind(this),
                 reconnectRetries: this._reconnectRetries,
-                dcenter: this._dcenters.get(this.session.dcId || 4, this.session.getAuthKey()),
+                dcenter: new network_1.Dcenter(this.session.dcId || 4, this.session.getAuthKey()),
             });
         }
         const connection = new this._connection({
