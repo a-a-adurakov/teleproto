@@ -762,7 +762,11 @@ export class MTProtoSender {
                                     capture: 30 
                                 });
                             }
+                            // For 444 and unknown errors, mark slot as dead so MediaScheduler creates new one
                             this.userDisconnected = true;
+                            if (this._onConnectionBreak) {
+                                this._onConnectionBreak(this._dcId);
+                            }
                             return;
                 } else {
                     this._log.error("Unhandled error while receiving data", e);
