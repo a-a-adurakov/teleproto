@@ -117,45 +117,44 @@ export class Network {
 
             const isMedia = isDownloadDcId(shiftedDcId) 
                             || isUploadDcId(shiftedDcId);
-            if (
-                isMedia &&
-                dcenter.mediaTempExpiresAt > 0 &&
-                dcenter.mediaTempExpiresAt <
+            if (isMedia 
+                && dcenter.mediaTempExpiresAt > 0 
+                && dcenter.mediaTempExpiresAt <
                     Math.floor(Date.now() / 1000) + 60
             ) {
                 dcenter.resetMediaTempKey();
             }
             const log = this._client._log;
-
             const sender = this._client._makeSender(
                 dcId,
                 () => this._onSenderBreak(shiftedDcId, slot),
                 isMedia ? dcenter.mediaTempKey : dcenter.authKey,
                 true,
                 isMedia
-                    ? {
-                          permAuthKey: dcenter.authKey,
-
-                          dcParam: -(
-                              dcId +
-                              ((this._client as any)._testServers ? 10000 : 0)
-                          ),
-                          expiresIn: TEMP_KEY_EXPIRES_IN,
-                          isBound: () => dcenter.mediaBound,
-                          onBound: (expiresAt: number) => {
-                              dcenter.mediaBound = true;
-                              dcenter.mediaTempExpiresAt = expiresAt;
-                          },
-                          onFailed: (err: unknown) => {
-                              dcenter.resetMediaTempKey();
-                              log.info(
-                                  `Temp-key binding failed for dc ${dcId}, will retry on next attempt (${
-                                      err instanceof Error ? err.message : err
-                                  })`
-                              );
-                          },
-                      }
-                    : undefined
+                ? 
+                    {
+                        permAuthKey: dcenter.authKey,
+                        dcParam: -(
+                            dcId +
+                            (this._client._testServers ? 10000 : 0)
+                        ),
+                        expiresIn: TEMP_KEY_EXPIRES_IN,
+                        isBound: () => dcenter.mediaBound,
+                        onBound: (expiresAt: number) => {
+                            dcenter.mediaBound = true;
+                            dcenter.mediaTempExpiresAt = expiresAt;
+                        },
+                        onFailed: (err: unknown) => {
+                            dcenter.resetMediaTempKey();
+                            log.info(
+                                `Temp-key binding failed for dc ${dcId}, will retry on next attempt (${
+                                    err instanceof Error ? err.message : err
+                                })`
+                            );
+                        },
+                    }
+                : 
+                    undefined
             );
             return await this._client._connectSender(sender, dcId);
         } finally {

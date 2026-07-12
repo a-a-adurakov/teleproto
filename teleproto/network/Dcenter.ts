@@ -4,16 +4,16 @@ import { AuthKey } from "../crypto/AuthKey";
 export class Dcenter {
     readonly dcId: number;
     readonly authKey: AuthKey;
+    readonly mediaTempKey = new AuthKey();
     private _salt: bigInt.BigInteger;
-    
-    mediaTempKey = new AuthKey();
-    mediaTempExpiresAt = 0;
+
     mediaBound = false;
+    mediaTempExpiresAt = 0;
 
     constructor(dcId: number, authKey?: AuthKey) {
         this.dcId = dcId;
-        this.authKey = authKey ?? new AuthKey();
         this._salt = bigInt.zero;
+        this.authKey = authKey ?? new AuthKey();
     }
 
     get mediaTempUsable(): boolean {
@@ -21,9 +21,12 @@ export class Dcenter {
     }
 
     resetMediaTempKey(): void {
-        this.mediaTempKey = new AuthKey();
-        this.mediaTempExpiresAt = 0;
+        this.mediaTempKey.setKey(
+            undefined
+        );
+
         this.mediaBound = false;
+        this.mediaTempExpiresAt = 0;
     }
 
     get salt(): bigInt.BigInteger {
@@ -44,7 +47,7 @@ export class DcenterRegistry {
         let dc = this._dcs.get(dcId);
         if (!dc) {
             dc = new Dcenter(dcId, seedKey);
-            this._dcs.set(dcId, dc);
+            const result = this._dcs.set(dcId, dc);
         }
         return dc;
     }
