@@ -710,7 +710,7 @@ export class MTProtoSender {
                 if (this._client) 
                     this._client._lastReceivedAt = Date.now();
                 this._log.debug(
-                    `[RECV] Decrypted msgId=${message.msgId} type=${message.obj?.className || "unknown"} bodyLen=${body.length}`
+                    `[RECV] Decrypted msgId=${message.msgId} bodyLen=${body.length}`
                 );
             } catch (e: any) {
                 this._log.debug(`Error while receiving items from the network`, e);
@@ -719,8 +719,7 @@ export class MTProtoSender {
                     continue;
                 } else if (e instanceof SecurityError) {
                     // Invalid auth key → terminal, kill slot like 404
-                    if (e.message?.includes("invalid auth key")) {
-                        this._log.error(`Security error (invalid auth key) on dc ${this._dcId}, killing slot`);
+                    if (e.message?.includes("auth key")) {
                         this._handleBadAuthKey();
                         this._recvLoopHandle = undefined;
                         return;
@@ -798,21 +797,19 @@ export class MTProtoSender {
 
         // Reject all pending requests so _connectSender doesn't hang
         for (const state of this._pendingState.values()) {
-            state.reject(new RPCError(
-                `AUTH_KEY_INVALID`,
-                undefined,
-                404
-            ));
+            const err = new RPCError(`auth key`, undefined, 404);
+            state.reject(err);
         }
         this._pendingState.clear();
 
-        if (this._isMainSender && this._updateCallback) {
+        if (!this._isMainSender && this._onConnectionBreak) {
+            this._onConnectionBreak(this._dcId);
+        }
+        else if (this._isMainSender && this._updateCallback) {
             this._updateCallback(
                 this._client,
                 new UpdateConnectionState(UpdateConnectionState.broken)
             );
-        } else if (!this._isMainSender && this._onConnectionBreak) {
-            this._onConnectionBreak(this._dcId);
         }
     }
 

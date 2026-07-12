@@ -457,7 +457,7 @@ class MTProtoSender {
         this._sendLoopHandle = undefined;
     }
     async _recvLoop() {
-        var _a, _b;
+        var _a;
         // Create a new abort controller for this loop
         this._abortController = new AbortController();
         const signal = this._abortController.signal;
@@ -501,7 +501,7 @@ class MTProtoSender {
                 message = await this._state.decryptMessageData(body);
                 if (this._client)
                     this._client._lastReceivedAt = Date.now();
-                this._log.debug(`[RECV] Decrypted msgId=${message.msgId} type=${((_a = message.obj) === null || _a === void 0 ? void 0 : _a.className) || "unknown"} bodyLen=${body.length}`);
+                this._log.debug(`[RECV] Decrypted msgId=${message.msgId} bodyLen=${body.length}`);
             }
             catch (e) {
                 this._log.debug(`Error while receiving items from the network`, e);
@@ -511,8 +511,7 @@ class MTProtoSender {
                 }
                 else if (e instanceof errors_1.SecurityError) {
                     // Invalid auth key → terminal, kill slot like 404
-                    if ((_b = e.message) === null || _b === void 0 ? void 0 : _b.includes("invalid auth key")) {
-                        this._log.error(`Security error (invalid auth key) on dc ${this._dcId}, killing slot`);
+                    if ((_a = e.message) === null || _a === void 0 ? void 0 : _a.includes("auth key")) {
                         this._handleBadAuthKey();
                         this._recvLoopHandle = undefined;
                         return;
@@ -585,14 +584,15 @@ class MTProtoSender {
         this.userDisconnected = true;
         // Reject all pending requests so _connectSender doesn't hang
         for (const state of this._pendingState.values()) {
-            state.reject(new errors_1.RPCError(`AUTH_KEY_INVALID`, undefined, 404));
+            const err = new errors_1.RPCError(`auth key`, undefined, 404);
+            state.reject(err);
         }
         this._pendingState.clear();
-        if (this._isMainSender && this._updateCallback) {
-            this._updateCallback(this._client, new UpdateConnectionState_1.UpdateConnectionState(UpdateConnectionState_1.UpdateConnectionState.broken));
-        }
-        else if (!this._isMainSender && this._onConnectionBreak) {
+        if (!this._isMainSender && this._onConnectionBreak) {
             this._onConnectionBreak(this._dcId);
+        }
+        else if (this._isMainSender && this._updateCallback) {
+            this._updateCallback(this._client, new UpdateConnectionState_1.UpdateConnectionState(UpdateConnectionState_1.UpdateConnectionState.broken));
         }
     }
     /**

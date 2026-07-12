@@ -365,6 +365,10 @@ class TelegramBaseClient {
                     sender.userDisconnected = false;
                     return sender;
                 }
+                // If sender is broken, exit the loop — let MediaScheduler retry with new slot
+                if (sender.userDisconnected) {
+                    throw err;
+                }
                 if (this._errorHandler) {
                     await this._errorHandler(err);
                 }
